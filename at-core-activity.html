@@ -33,9 +33,11 @@ element.
 -->
 <link rel="import" href="../core-ajax/core-xhr.html">
 <link rel="import" href="../at-core-spinner/at-core-spinner.html">
+<link rel="import" href="../at-carbon-message/at-carbon-message.html">
 
 <polymer-element name="at-core-activity" attributes="url handleAs auto params response method headers body contentType withCredentials">
-  <template>    
+  <template>
+    <at-carbon-message id="msg" type="error"></at-carbon-message>
     <at-core-spinner id="spinner" display="none" type="wave"></at-core-spinner>
   </template>
 
@@ -91,7 +93,7 @@ element.
        * @type string
        * @default 'text'
        */
-      handleAs: '',
+      handleAs: 'json',
 
       /**
        * If true, automatically performs an Ajax request when either `url` or `params` changes.
@@ -101,6 +103,15 @@ element.
        * @default false
        */
       auto: false,
+
+      /**
+      * If true, show a warning when the server returns a response with a status code.
+      *
+      * @attribute auto
+      * @type boolean
+      * @default false
+      */
+      handleResponseErrors: true,
 
       /**
        * Parameters to send to the specified URL, as JSON.
@@ -202,6 +213,7 @@ element.
         if (this.isSuccess(xhr)) {
           this.processResponse(xhr);
         } else {
+          this.$.msg.html = "Request failed.<br>(at-core-activity url: " + this.url + ", status:" + xhr.status + ")";
           this.$.spinner.display = "none";
           this.error(xhr);
         }
@@ -211,12 +223,43 @@ element.
 
       isSuccess: function (xhr) {
         var status = xhr.status || 0;
-        return !status || (status >= 200 && status < 300);
+        return (status >= 200 && status < 300);
       },
 
       processResponse: function (xhr) {
-        var response = this.evalResponse(xhr);        
-        this.response = !!response.Data ? response.Data : response;        
+        var response = this.evalResponse(xhr);
+
+        if (this.handleResponseErrors && !!response.Data) {
+
+          // process activity response
+          if (response.ErrorCode == 0) {
+
+            // activitiy returned valid response
+            this.response = response.Data;
+
+          } else {
+            
+            // activity failed 
+            var msg = "";
+            switch (response.ErrorCode) {
+              case 403:
+                msg = "Your are not authorized to view this information.";
+                if (response.Data.anonymous) msg += " Please login before accessing this information."
+                break;
+              default:
+                msg = "Unknown server response."
+            }
+
+            msg += "<br><small>(at-core-activity ErrorCode: " + response.ErrorCode + ", "+ response.Data.errorText + ", url: " + this.url + ")</small>";
+            this.$.msg.type = "warning";
+            this.$.msg.html = msg;
+          }
+
+        } else {
+
+          this.response = !!response.Data ? response.Data : response;
+
+        }
         this.fire('core-response', { response: response, xhr: xhr });
       },
 
@@ -246,6 +289,7 @@ element.
         try {
           return JSON.parse(r);
         } catch (x) {
+          this.$.msg.html = "Exception trying to parse response as JSON.<br>(at-core-activity url: " + this.url + ")";
           console.warn('at-core-activity caught an exception trying to parse response as JSON:');
           console.warn('url:', this.url);
           console.warn(x);
@@ -326,7 +370,13 @@ element.
         args.url = this.url;
         args.method = this.method;
         this.$.spinner.display = "block";
-        return args.url && this.xhr.request(args);
+
+        try {
+          var r = args.url && this.xhr.request(args);
+        } catch (x) {
+          debugger;
+        }
+
       }
 
     });

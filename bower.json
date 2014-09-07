@@ -2,6 +2,8 @@
   "name": "core-ajax",
   "private": true,
   "dependencies": {
-    "polymer": "Polymer/polymer#master"
+    "polymer": "Polymer/polymer#master",
+    "at-core-spinner": "TangereJs/at-core-spinner#master",
+    "at-carbon-message": "TangereJs/at-core-spinner#master"
   }
 }
