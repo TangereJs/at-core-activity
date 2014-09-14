@@ -38,7 +38,7 @@ element.
 <polymer-element name="at-core-activity" attributes="url handleAs auto params response method headers body contentType withCredentials">
   <template>
     <at-carbon-message id="msg" type="error"></at-carbon-message>
-    <at-core-spinner id="spinner" display="none" type="wave"></at-core-spinner>
+    <at-core-spinner id="spinner" type="wave"></at-core-spinner>
   </template>
 
   <script>
@@ -214,11 +214,11 @@ element.
           this.processResponse(xhr);
         } else {
           this.$.msg.html = "Request failed.<br>(at-core-activity url: " + this.url + ", status:" + xhr.status + ")";
-          this.$.spinner.display = "none";
+          this.$.spinner.visible = false;
           this.error(xhr);
         }
         this.complete(xhr);
-        this.$.spinner.display = "none";
+        this.$.spinner.visible = false;
       },
 
       isSuccess: function (xhr) {
@@ -234,7 +234,7 @@ element.
           // process activity response
           if (response.ErrorCode == 0) {
 
-            // activitiy returned valid response
+            // activity returned valid response
             this.response = response.Data;
 
           } else {
@@ -369,7 +369,7 @@ element.
         args.callback = this.receive.bind(this);
         args.url = this.url;
         args.method = this.method;
-        this.$.spinner.display = "block";
+        this.$.spinner.visible = true;
 
         try {
           var r = args.url && this.xhr.request(args);
