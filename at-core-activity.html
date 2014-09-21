@@ -214,11 +214,11 @@ element.
           this.processResponse(xhr);
         } else {
           this.$.msg.html = "Request failed.<br>(at-core-activity url: " + this.url + ", status:" + xhr.status + ")";
-          this.$.spinner.visible = false;
+          this.$.spinner.hidden = true;
           this.error(xhr);
         }
         this.complete(xhr);
-        this.$.spinner.visible = false;
+        this.$.spinner.hidden = true;
       },
 
       isSuccess: function (xhr) {
@@ -369,7 +369,7 @@ element.
         args.callback = this.receive.bind(this);
         args.url = this.url;
         args.method = this.method;
-        this.$.spinner.visible = true;
+        this.$.spinner.hidden = false;
 
         try {
           var r = args.url && this.xhr.request(args);
