@@ -229,7 +229,7 @@ element.
       processResponse: function (xhr) {
         var response = this.evalResponse(xhr);
 
-        if (this.handleResponseErrors && !!response.Data) {
+        if (this.handleResponseErrors && !!response.ErrorCode) {
 
           // process activity response
           if (response.ErrorCode == 0) {
@@ -238,8 +238,8 @@ element.
             this.response = response.Data;
 
           } else {
-            
-            // activity failed 
+
+            // activity failed
             var msg = "";
             switch (response.ErrorCode) {
               case 403:
@@ -250,7 +250,7 @@ element.
                 msg = "Unknown server response."
             }
 
-            msg += "<br><small>(at-core-activity ErrorCode: " + response.ErrorCode + ", "+ response.Data.errorText + ", url: " + this.url + ")</small>";
+            msg += "<br><small>(at-core-activity ErrorCode: " + response.ErrorCode + ", " + response.Data.ErrorText + ", url: " + this.url + ")</small>";
             this.$.msg.type = "warning";
             this.$.msg.html = msg;
           }
