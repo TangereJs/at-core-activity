@@ -30,7 +30,7 @@ element.
 @status preview
 @homepage github.io
 -->
-<link rel="import" href="at-core-request.html">
+<!--<link rel="import" href="at-core-request.html">-->
 <link rel="import" href="../at-core-spinner/at-core-spinner.html">
 <link rel="import" href="../at-carbon-message/at-carbon-message.html">
 
@@ -182,6 +182,17 @@ Polymer({
             observer:'requestOptionsChanged'
         },
         
+        
+        /**
+        * If true, show a warning when the server returns a response with a status code.
+        *
+        */
+        handleResponseErrors: {
+            type: Boolean,
+            value: true,
+            observer:'requestOptionsChanged'
+        },
+        
         /**
         * Content type to use when sending data.
         */
@@ -245,7 +256,55 @@ Polymer({
             type: Array,
             value: [],
             notify: true
-        } 
+        },
+
+        /**
+        * A reference to the XMLHttpRequest instance used to generate the
+        * network request.
+        *
+        * @type XMLHttpRequest
+        */
+        xhr: {
+            type: Object,
+            value: new XMLHttpRequest(),
+            readOnly: true
+        },
+        
+        /**
+        * A reference to the parsed response body, if the `xhr` has completely
+        * resolved.
+        *
+        * @type *
+        */
+        response: {
+            type: Object,
+            value: null,
+            notify: true
+        },
+
+        /**
+        * A promise that resolves when the `xhr` response comes back, or rejects
+        * if there is an error before the `xhr` completes.
+        */
+        completes: {
+            type: Promise,
+            readOnly: true
+        },
+
+        /**
+        * An object that contains progress information emitted by the XHR if
+        * available.
+        */
+        progress: {
+            type: Object,
+            value: {},
+            notify: true
+        },
+                               
+        aborted: {
+            type: Boolean,
+            value: false
+        }
     },
     
     ready: function () {
@@ -326,30 +385,53 @@ Polymer({
     generateRequest: function () {
         this.$.msg.html = "";
         
-        var request = document.createElement('at-core-request');
+        this.completes = new Promise(function (resolve, reject) {
+                                this.resolveCompletes = resolve;
+                                this.rejectCompletes = reject;
+                            }.bind(this));
+        
         var requestOptions = this.toRequestOptions();
-        this.activeRequests.push(request);
-        request.completes.then(
+        
+        this.completes.then(
             this.handleResponse.bind(this),
             this.handleError.bind(this)
         ).then(
-            this.discardRequest.bind(this, request)
+            this.discardRequest.bind(this)
         );
         
         this.$.spinner.display = "block";
         
-        request.send(requestOptions);
-        this.lastRequest = request;
-        this.fire('request', {
-            xhr: request.xhr,
-            options: requestOptions
-        });
-        return request;
+        this.send(requestOptions);
     },
     
     handleResponse: function (response) {
         this.lastResponse = response;
-        this.fire('core-response', response);
+        if (this.handleResponseErrors && !!response.ErrorCode) {
+            // process activity response
+            if (response.ErrorCode == 0) {
+                // activity returned valid response
+                this.response = response.Data;
+            } else {
+                // activity failed
+                var msg = "";
+                switch (response.ErrorCode) {
+                    case 403:
+                        msg = "Your are not authorized to view this information.";
+                        if (response.Data.anonymous) msg += " Please login before accessing this information."
+                    break;
+                    default:
+                        msg = "Unknown server response."
+                }
+
+                msg += "<br><small>(at-core-activity ErrorCode: " + response.ErrorCode + ", " + response.Data.ErrorText + ", url: " + this.url + ")</small>";
+                this.$.msg.type = "warning";
+                this.$.msg.html = msg;
+            }
+        } else {
+            this.response = !!response.Data ? response.Data : response;
+        }
+        
+        this.fire('core-response', { response: response, xhr: this.xhr });
     },
     
     handleError: function (error) {
@@ -357,19 +439,135 @@ Polymer({
             console.error(error);
         }
         this.lastError = error;
-        this.fire('core-error', error);
+        
+        this.$.msg.html = "Request failed.<br>(at-core-activity url: " + this.url + ", status:" + this.xhr.status + ")";
+        
+        var response = this.xhr.status + ': ' + this.xhr.responseText;
+        this.fire('core-error', { response: response, xhr: this.xhr });
     },
     
-    discardRequest: function (request) {
+    discardRequest: function () {
         this.$.spinner.display = "none";
         
-        var requestIndex = this.activeRequests.indexOf(request);
-        if (requestIndex > 0) {
-            this.activeRequests.splice(requestIndex, 1);
-        }
+        this.fire('core-complete', { response: this.xhr.status, xhr: this.xhr });
+    },
         
-        debugger;
-        this.fire('core-complete', { response: request.xhr.status, xhr: request.xhr });
+    /**
+     * Sends an HTTP request to the server and returns the XHR object.
+     *
+     * @method request
+     * @param {Object} options
+     *    @param {String} options.url The url to which the request is sent.
+     *    @param {String} options.method The HTTP method to use, default is GET.
+     *    @param {boolean} options.async By default, all requests are sent asynchronously. To send synchronous requests, set to true.
+     *    @param {Object} options.body The content for the request body for POST method.
+     *    @param {Object} options.headers HTTP request headers.
+     *    @param {String} options.handleAs The response type. Default is 'text'.
+     *    @param {boolean} options.withCredentials Whether or not to send credentials on the request. Default is false.
+     * @return Promise
+     */
+    send: function (options) {
+        var xhr = this.xhr;
+        
+        if (xhr.readyState > 0) {
+            return;
+        }
+
+        xhr.addEventListener('readystatechange', function () {
+            if (xhr.readyState === 4 && !this.aborted) {
+                this.response = this.parseResponse();
+                this.resolveCompletes(this.response);
+            }
+        }.bind(this));
+
+        xhr.addEventListener('progress', function (progress) {
+            this.progress = {
+                lengthComputable: progress.lengthComputable,
+                loaded: progress.loaded,
+                total: progress.total
+            };
+        }.bind(this))
+
+        xhr.addEventListener('error', function (error) {
+            this.rejectCompletes(error)
+        }.bind(this));
+
+        xhr.addEventListener('abort', function () {
+            this.rejectCompletes(new Error('Request aborted.'));
+        }.bind(this));
+
+        xhr.open(
+            options.method || 'GET',
+            options.url,
+            options.async !== false
+        );
+
+        if (options.headers) {
+            Object.keys(options.headers).forEach(function (requestHeader) {
+                xhr.setRequestHeader(
+                    requestHeader,
+                    options.headers[requestHeader]
+                );
+            }, this);
+        }
+
+        xhr.responseType = options.handleAs;
+        xhr.withCredentials = options.withCredentials;
+        
+        xhr.send(options.body);
+
+        this.lastRequest = xhr;
+        
+        return this.completes;
+    },
+
+    parseResponse: function () {
+        var xhr = this.xhr;
+        try {
+            switch (xhr.responseType) {
+                case 'json':
+                    // If xhr.response is undefined, responseType `json` may
+                    // not be supported.
+                    if (xhr.response === undefined) {
+                        // If accessing `xhr.responseText` throws, responseType `json`
+                        // is supported and the result is rightly `undefined`.
+                        try {
+                            xhr.responseText;
+                        } catch (e) {
+                            return xhr.response;
+                        }
+
+                        // Otherwise, attempt to parse `xhr.responseText` as JSON.
+                        try {
+                            return JSON.parse(xhr.responseText);
+                        } catch (x) {
+                            this.$.msg.html = "Exception trying to parse response as JSON.<br>(at-core-activity url: " + this.url + ")";
+                            console.warn('at-core-activity caught an exception trying to parse response as JSON:');
+                            console.warn('url:', this.url);
+                            console.warn(x);
+                            return xhr.responseText;
+                        }
+                    }
+
+                    return xhr.response;
+                case 'xml':
+                    return xhr.responseXML;
+                case 'blob':
+                case 'document':
+                case 'arraybuffer':
+                    return xhr.response;
+                case 'text':
+                default:
+                    return xhr.responseText;
+                }
+        } catch (e) {
+            this.rejectCompletes(new Error('Could not parse response. ' + e.message));
+        }
+    },
+
+    abort: function () {
+        this.aborted = true;
+        this.xhr.abort();
     }
 });
 
