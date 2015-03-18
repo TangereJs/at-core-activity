@@ -18,16 +18,14 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
 </head>
 <body>
 
-  <at-core-activity auto url="http://gdata.youtube.com/feeds/api/videos/"
-                    params='{"alt":"json", "q":"chrome"}'
-                    handleas="json" withcredentials="false"></at-core-activity>
+  <at-core-activity auto url="http://gdata.youtube.com/feeds/api/videos/" params='{"alt":"json", "q":"chrome"}'></at-core-activity>
    
   <template repeat="{{response.feed.entry}}">
     <div>{{title.$t}}</div>
   </template>
   
   <script>
-    document.addEventListener('polymer-ready', function() {
+    HTMLImports.whenReady(function() {
       var ajax = document.querySelector("at-core-activity");
       ajax.addEventListener("core-response", 
         function(e) {
