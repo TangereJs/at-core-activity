@@ -1,0 +1,37 @@
+<link rel="import" href="at-core-activity.html">
+
+<dom-module id="core-response-demo">
+    <template>
+        <at-core-activity auto url="{{url}}" params='{"alt":"json", "q":"chrome"}'></at-core-activity>
+        
+        Number of items in response: <span>{{response.length}}</span>
+        
+        <template is="x-repeat" items="{{response}}">
+            <div>{{title.$t}}</div>
+        </template>
+    </template>
+</dom-module>  
+
+  <script>
+    Polymer({
+        is:"core-response-demo",
+        properties:{
+            response:{
+                type:Array,
+                value:[]
+            },
+            url:{
+                type:String,
+                value:''
+            }
+        },
+        
+        listeners:{
+            "core-response" : "handleResponse"
+        },
+        
+        handleResponse: function(e){
+            this.response = e.detail.response.feed.entry.slice();
+        }
+    });
+  </script>

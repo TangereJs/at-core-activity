@@ -30,7 +30,6 @@ element.
 @status preview
 @homepage github.io
 -->
-<!--<link rel="import" href="at-core-request.html">-->
 <link rel="import" href="../at-core-spinner/at-core-spinner.html">
 <link rel="import" href="../at-carbon-message/at-carbon-message.html">
 
@@ -207,7 +206,7 @@ Polymer({
         */
         withCredentials:{
             type: Boolean,
-            value: false,
+            value: true,
             observer:'requestOptionsChanged'
         },
          
@@ -377,6 +376,11 @@ Polymer({
         }
     },
     
+    isSuccess: function (xhr) {
+        var status = xhr.status || 0;
+        return (status >= 200 && status < 300);
+    },
+    
     /**
      * Performs an AJAX request to the specified URL.
      *
@@ -442,7 +446,10 @@ Polymer({
         
         this.$.msg.html = "Request failed.<br>(at-core-activity url: " + this.url + ", status:" + this.xhr.status + ")";
         
-        var response = this.xhr.status + ': ' + this.xhr.responseText;
+        var responseText = (this.xhr.response !== null)? this.xhr.responseText : "null response";
+        
+        var response = this.xhr.status + ': ' + responseText;
+        
         this.fire('core-error', { response: response, xhr: this.xhr });
     },
     
@@ -475,8 +482,12 @@ Polymer({
 
         xhr.addEventListener('readystatechange', function () {
             if (xhr.readyState === 4 && !this.aborted) {
-                this.response = this.parseResponse();
-                this.resolveCompletes(this.response);
+                if(this.isSuccess(xhr)){
+                    this.response = this.parseResponse();
+                    this.resolveCompletes(this.response);}
+                else{
+                    this.rejectCompletes(new Error(''));
+                }
             }
         }.bind(this));
 
@@ -534,7 +545,7 @@ Polymer({
                         try {
                             xhr.responseText;
                         } catch (e) {
-                            return xhr.response;
+                            return xhr.response
                         }
 
                         // Otherwise, attempt to parse `xhr.responseText` as JSON.
@@ -545,7 +556,7 @@ Polymer({
                             console.warn('at-core-activity caught an exception trying to parse response as JSON:');
                             console.warn('url:', this.url);
                             console.warn(x);
-                            return xhr.responseText;
+                            this.rejectCompletes(new Error(xhr.responseText));
                         }
                     }
 
