@@ -34,6 +34,11 @@ element.
 <link rel="import" href="../at-carbon-message/at-carbon-message.html">
 
 <dom-module id="at-core-activity">
+  <style>
+      #msg{
+          margin-top:0px !important;
+      }
+  </style>
   <template>
     <at-carbon-message id="msg" type="error"></at-carbon-message>
     <at-core-spinner id="spinner" type="wave" display="none"></at-core-spinner>
@@ -423,6 +428,10 @@ Polymer({
                         msg = "Your are not authorized to view this information.";
                         if (response.Data.anonymous) msg += " Please login before accessing this information."
                     break;
+                    case 461:
+                        msg = "Your are not authorized to access this service. Please authorize yourself for using " + response.Data.Connector + " via next url: <br>";
+                        msg += response.Data.AuthorizeUrl;
+                    break;
                     default:
                         msg = "Unknown server response."
                 }
@@ -484,7 +493,8 @@ Polymer({
             if (xhr.readyState === 4 && !this.aborted) {
                 if(this.isSuccess(xhr)){
                     this.response = this.parseResponse();
-                    this.resolveCompletes(this.response);}
+                    this.resolveCompletes(this.response);
+                }
                 else{
                     this.rejectCompletes(new Error(''));
                 }

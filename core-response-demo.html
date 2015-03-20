@@ -31,7 +31,12 @@
         },
         
         handleResponse: function(e){
-            this.response = e.detail.response.feed.entry.slice();
+            if(this.url.indexOf('gdata.youtube.com') > 0){
+                this.response = e.detail.response.feed.entry.slice(); // youtube demo.html test
+            }else{
+                this.response = e.detail.response.Data.items.slice(); // orchard demo-orchard.html test
+            }
+            
         }
     });
   </script>
