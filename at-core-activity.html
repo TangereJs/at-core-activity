@@ -493,7 +493,9 @@ element.
     send: function (options) {
       var xhr = this.xhr;
 
-//      if (xhr.readyState > 0) { // return; // }
+      //      if (xhr.readyState > 0) {
+      //        return;
+      //      }
 
       xhr.addEventListener('readystatechange', function () {
         if (xhr.readyState === 4 && !this.aborted) {
