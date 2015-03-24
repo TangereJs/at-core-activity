@@ -35,9 +35,9 @@ element.
 
 <dom-module id="at-core-activity">
   <style>
-      #msg{
-          margin-top:0px !important;
-      }
+    #msg {
+      margin-top: 0px !important;
+    }
   </style>
   <template>
     <at-carbon-message id="msg" type="error"></at-carbon-message>
@@ -45,429 +45,437 @@ element.
   </template>
 </dom-module>
 <script>
-
-Polymer({
-    is:"at-core-activity",
-  
-    /**
-    * Fired when a response is received.
-    *
-    * @event core-response
-    */
+  Polymer({
+    is: "at-core-activity",
 
     /**
-    * Fired when an error is received.
-    *
-    * @event core-error
-    */
+     * Fired when a response is received.
+     *
+     * @event core-response
+     */
 
     /**
-    * Fired whenever a response or an error is received.
-    *
-    * @event core-complete
-    */
-    
-    properties:{
-        /**
-        * The URL target of the request.
-        */
-        url: {
-            type: String,
-            value: '',
-            observer: 'urlChanged'
-        },
-        
-        /**
-        * Parameters to send to the specified URL, as JSON.
-        * @type string (JSON)
-        */
-        params:{
-            type: Object,
-            value: {},
-            observer:'requestOptionsChanged'
-        },
-        
-        /**
-        * The HTTP method to use such as 'GET', 'POST', 'PUT', or 'DELETE'.
-        * Default is 'GET'.
-        */
-        method: {
-            type: String,
-            value: 'GET',
-            observer:'requestOptionsChanged'
-        },
-        
-        /**
-        * HTTP request headers to send.
-        *
-        * Example:
-        *
-        *     <at-core-activity
-        *         auto
-        *         url="http://somesite.com"
-        *         headers='{"X-Requested-With": "XMLHttpRequest"}'
-        *         handleAs="json"
-        *         on-core-response="{{handleResponse}}"></at-core-activity>
-        */
-        headers: {
-            type: Object,
-            value: {},
-            observer:'requestOptionsChanged'
-        },
-        
-        /**
-        * Specifies what data to store in the `response` property, and
-        * to deliver as `event.response` in `response` events.
-        *
-        * One of:
-        *
-        *    `text`: uses `XHR.responseText`.
-        *
-        *    `xml`: uses `XHR.responseXML`.
-        *
-        *    `json`: uses `XHR.responseText` parsed as JSON.
-        *
-        *    `arraybuffer`: uses `XHR.response`.
-        *
-        *    `blob`: uses `XHR.response`.
-        *
-        *    `document`: uses `XHR.response`.
-        */
-        handleAs: {
-            type: String,
-            value :'json',
-            observer:'requestOptionsChanged'
-        },
+     * Fired when an error is received.
+     *
+     * @event core-error
+     */
 
-        /**
-        * If true, error messages will automatically be logged to the console.
-        */
-        verbose: {
-            type: Boolean,
-            value: false
-        },
-        
-        /**
-        * If true, automatically performs an Ajax request when either `url` or `params` changes.
-        */
-        auto: {
-            type: Boolean,
-            value: false,
-            observer: 'requestOptionsChanged'
-        },
+    /**
+     * Fired whenever a response or an error is received.
+     *
+     * @event core-complete
+     */
 
-        /**
-        * Optional raw body content to send when method === "POST".
-        *
-        * Example:
-        *
-        *     <core-ajax method="POST" auto url="http://somesite.com"
-        *         body='{"foo":1, "bar":2}'>
-        *     </core-ajax>
-        *
-        * @attribute body
-        * @type Object
-        * @default undefined
-        */
-        body: {
-            type: String,
-            value: 'undefined',
-            observer:'requestOptionsChanged'
-        },
-        
-        /**
-        * Toggle whether XHR is synchronous or asynchronous. Don't change this
-        * to true unless You Know What You Are Doing™.
-        *
-        */
-        sync: {
-            type: Boolean,
-            value: false,
-            observer:'requestOptionsChanged'
-        },
-        
-        
-        /**
-        * If true, show a warning when the server returns a response with a status code.
-        *
-        */
-        handleResponseErrors: {
-            type: Boolean,
-            value: true,
-            observer:'requestOptionsChanged'
-        },
-        
-        /**
-        * Content type to use when sending data.
-        */
-        contentType:{
-            type: String,
-            value: 'application/x-www-form-urlencoded',
-            observer:'requestOptionsChanged'
-        },
+    properties: {
+      /**
+       * The URL target of the request.
+       */
+      url: {
+        type: String,
+        value: '',
+        observer: 'urlChanged'
+      },
 
-        /**
-        * Set the withCredentials flag on the request.
-        */
-        withCredentials:{
-            type: Boolean,
-            value: true,
-            observer:'requestOptionsChanged'
-        },
-         
-        /**
-        * Will be set to the most recent request made by this core-ajax element.
-        *
-        * @type core-request
-        */
-        lastRequest: {
-            type: Object,
-            value: null,
-            notify: true
-        },
-        
-        /**
-        * Will be set to the most recent response received by a request
-        * that originated from this core-ajax element. The type of the response
-        * is determined by the value of `handleas` at the time that the request
-        * was generated.
-        *
-        * @type *
-        */
-        lastResponse: {
-            type: Object,
-            value: null,
-            notify: true
-        },
-        
-        /**
-        * Will be set to the most recent error that resulted from a request
-        * that originated from this core-ajax element.
-        *
-        * @type Error
-        */
-        lastError: {
-            type: Object,
-            value: null,
-            notify: true
-        },
-        
-        /**
-        * An Array of all in-flight requests originating from this core-ajax
-        * element.
-        */
-        activeRequests: {
-            type: Array,
-            value: [],
-            notify: true
-        },
+      /**
+       * Parameters to send to the specified URL, as JSON.
+       * @type string (JSON)
+       */
+      params: {
+        type: Object,
+        value: {},
+        observer: 'requestOptionsChanged'
+      },
 
-        /**
-        * A reference to the XMLHttpRequest instance used to generate the
-        * network request.
-        *
-        * @type XMLHttpRequest
-        */
-        xhr: {
-            type: Object,
-            value: new XMLHttpRequest(),
-            readOnly: true
-        },
-        
-        /**
-        * A reference to the parsed response body, if the `xhr` has completely
-        * resolved.
-        *
-        * @type *
-        */
-        response: {
-            type: Object,
-            value: null,
-            notify: true
-        },
+      /**
+       * The HTTP method to use such as 'GET', 'POST', 'PUT', or 'DELETE'.
+       * Default is 'GET'.
+       */
+      method: {
+        type: String,
+        value: 'GET',
+        observer: 'requestOptionsChanged'
+      },
 
-        /**
-        * A promise that resolves when the `xhr` response comes back, or rejects
-        * if there is an error before the `xhr` completes.
-        */
-        completes: {
-            type: Promise,
-            readOnly: true
-        },
+      /**
+       * HTTP request headers to send.
+       *
+       * Example:
+       *
+       *     <at-core-activity
+       *         auto
+       *         url="http://somesite.com"
+       *         headers='{"X-Requested-With": "XMLHttpRequest"}'
+       *         handleAs="json"
+       *         on-core-response="{{handleResponse}}"></at-core-activity>
+       */
+      headers: {
+        type: Object,
+        value: {},
+        observer: 'requestOptionsChanged'
+      },
 
-        /**
-        * An object that contains progress information emitted by the XHR if
-        * available.
-        */
-        progress: {
-            type: Object,
-            value: {},
-            notify: true
-        },
-                               
-        aborted: {
-            type: Boolean,
-            value: false
-        }
+      /**
+       * Specifies what data to store in the `response` property, and
+       * to deliver as `event.response` in `response` events.
+       *
+       * One of:
+       *
+       *    `text`: uses `XHR.responseText`.
+       *
+       *    `xml`: uses `XHR.responseXML`.
+       *
+       *    `json`: uses `XHR.responseText` parsed as JSON.
+       *
+       *    `arraybuffer`: uses `XHR.response`.
+       *
+       *    `blob`: uses `XHR.response`.
+       *
+       *    `document`: uses `XHR.response`.
+       */
+      handleAs: {
+        type: String,
+        value: 'json',
+        observer: 'requestOptionsChanged'
+      },
+
+      /**
+       * If true, error messages will automatically be logged to the console.
+       */
+      verbose: {
+        type: Boolean,
+        value: false
+      },
+
+      /**
+       * If true, automatically performs an Ajax request when either `url` or `params` changes.
+       */
+      auto: {
+        type: Boolean,
+        value: false,
+        observer: 'requestOptionsChanged'
+      },
+
+      /**
+       * Optional raw body content to send when method === "POST".
+       *
+       * Example:
+       *
+       *     <core-ajax method="POST" auto url="http://somesite.com"
+       *         body='{"foo":1, "bar":2}'>
+       *     </core-ajax>
+       *
+       * @attribute body
+       * @type Object
+       * @default undefined
+       */
+      body: {
+        type: String,
+        value: 'undefined',
+        observer: 'requestOptionsChanged'
+      },
+
+      /**
+       * Toggle whether XHR is synchronous or asynchronous. Don't change this
+       * to true unless You Know What You Are Doing™.
+       *
+       */
+      sync: {
+        type: Boolean,
+        value: false,
+        observer: 'requestOptionsChanged'
+      },
+
+
+      /**
+       * If true, show a warning when the server returns a response with a status code.
+       *
+       */
+      handleResponseErrors: {
+        type: Boolean,
+        value: true,
+        observer: 'requestOptionsChanged'
+      },
+
+      /**
+       * Content type to use when sending data.
+       */
+      contentType: {
+        type: String,
+        value: 'application/x-www-form-urlencoded',
+        observer: 'requestOptionsChanged'
+      },
+
+      /**
+       * Set the noCredentials flag on the request.
+       */
+      noCredentials: {
+        type: Boolean,
+        value: false,
+        observer: 'requestOptionsChanged'
+      },
+
+      /**
+       * Will be set to the most recent request made by this core-ajax element.
+       *
+       * @type core-request
+       */
+      lastRequest: {
+        type: Object,
+        value: null,
+        notify: true
+      },
+
+      /**
+       * Will be set to the most recent response received by a request
+       * that originated from this core-ajax element. The type of the response
+       * is determined by the value of `handleas` at the time that the request
+       * was generated.
+       *
+       * @type *
+       */
+      lastResponse: {
+        type: Object,
+        value: null,
+        notify: true
+      },
+
+      /**
+       * Will be set to the most recent error that resulted from a request
+       * that originated from this core-ajax element.
+       *
+       * @type Error
+       */
+      lastError: {
+        type: Object,
+        value: null,
+        notify: true
+      },
+
+      /**
+       * An Array of all in-flight requests originating from this core-ajax
+       * element.
+       */
+      activeRequests: {
+        type: Array,
+        value: [],
+        notify: true
+      },
+
+      /**
+       * A reference to the XMLHttpRequest instance used to generate the
+       * network request.
+       *
+       * @type XMLHttpRequest
+       */
+      xhr: {
+        type: Object,
+        value: new XMLHttpRequest(),
+        readOnly: true
+      },
+
+      /**
+       * A reference to the parsed response body, if the `xhr` has completely
+       * resolved.
+       *
+       * @type *
+       */
+      response: {
+        type: Object,
+        value: null,
+        notify: true
+      },
+
+      /**
+       * A promise that resolves when the `xhr` response comes back, or rejects
+       * if there is an error before the `xhr` completes.
+       */
+      completes: {
+        type: Promise,
+        readOnly: true
+      },
+
+      /**
+       * An object that contains progress information emitted by the XHR if
+       * available.
+       */
+      progress: {
+        type: Object,
+        value: {},
+        notify: true
+      },
+
+      aborted: {
+        type: Boolean,
+        value: false
+      }
     },
-    
+
     ready: function () {
-        this._afterReady = true;
-        this.requestOptionsChanged();
+      this._afterReady = true;
+      this.requestOptionsChanged();
     },
 
-    get queryString () {
-        var queryParts = [];
-        var param;
-        var value;
-        for (param in this.params) {
-            value = this.params[param];
-            param = window.encodeURIComponent(param);
-            if (value !== null) {
-                param += '=' + window.encodeURIComponent(value);
-            }
-            queryParts.push(param);
+    get queryString() {
+      var queryParts = [];
+      var param;
+      var value;
+      for (param in this.params) {
+        value = this.params[param];
+        param = window.encodeURIComponent(param);
+        if (value !== null) {
+          param += '=' + window.encodeURIComponent(value);
         }
+        queryParts.push(param);
+      }
       return queryParts.join('&');
     },
-    
-    get requestUrl () {
-        var queryString = this.queryString;
-        if (queryString) {
-            return this.url + '?' + queryString;
-        }
-        return this.url;
+
+    get requestUrl() {
+      var queryString = this.queryString;
+      if (queryString) {
+        return this.url + '?' + queryString;
+      }
+      return this.url;
     },
-    
-    get requestHeaders () {
-        var headers = Object.create(this.headers || {});
-        if (!('content-type' in headers)) {
-            headers['content-type'] = this.contentType;
-        }
-        return headers;
+
+    get requestHeaders() {
+      var headers = Object.create(this.headers || {});
+      if (!('content-type' in headers)) {
+        headers['content-type'] = this.contentType;
+      }
+      return headers;
     },
 
     toRequestOptions: function () {
-        return {
-            url: this.requestUrl,
-            method: this.method,
-            headers: this.requestHeaders,
-            body: this.body,
-            async: !this.sync,
-            handleAs: this.handleAs,
-            withCredentials: this.withCredentials
-        };
+      return {
+        url: this.requestUrl,
+        method: this.method,
+        headers: this.requestHeaders,
+        body: this.body,
+        async: !this.sync,
+        handleAs: this.handleAs,
+        withCredentials: !this.noCredentials
+      };
     },
-    
+
     urlChanged: function () {
-        if (!this.handleAs) {
-            var ext = String(this.url).split('.').pop();
-            switch (ext) {
-                case 'json':
-                    this.handleAs = 'json';
-                    break;
-                }
+      if (!this.handleAs) {
+        var ext = String(this.url).split('.').pop();
+        switch (ext) {
+        case 'json':
+          this.handleAs = 'json';
+          break;
         }
-        this.requestOptionsChanged();
+      }
+      this.requestOptionsChanged();
     },
-    
+
     requestOptionsChanged: function () {
-        if (!this._afterReady) {
-            return;
-        }
-      
-        if (this.auto) {
-            this.debounce('autoGenerateRequest', this.generateRequest);
-        }
+      if (!this._afterReady) {
+        return;
+      }
+
+      if (this.auto) {
+        this.debounce('autoGenerateRequest', this.generateRequest);
+      }
     },
-    
+
     isSuccess: function (xhr) {
-        var status = xhr.status || 0;
-        return (status >= 200 && status < 300);
+      var status = xhr.status || 0;
+      return (status >= 200 && status < 300);
     },
-    
+
     /**
      * Performs an AJAX request to the specified URL.
      *
      * @method generateRequest
      */
     generateRequest: function () {
-        this.$.msg.html = "";
-        
-        this.completes = new Promise(function (resolve, reject) {
-                                this.resolveCompletes = resolve;
-                                this.rejectCompletes = reject;
-                            }.bind(this));
-        
-        var requestOptions = this.toRequestOptions();
-        
-        this.completes.then(
-            this.handleResponse.bind(this),
-            this.handleError.bind(this)
-        ).then(
-            this.discardRequest.bind(this)
-        );
-        
-        this.$.spinner.display = "block";
-        
-        this.send(requestOptions);
-    },
-    
-    handleResponse: function (response) {
-        this.lastResponse = response;
-        if (this.handleResponseErrors && !!response.ErrorCode) {
-            // process activity response
-            if (response.ErrorCode == 0) {
-                // activity returned valid response
-                this.response = response.Data;
-            } else {
-                // activity failed
-                var msg = "";
-                switch (response.ErrorCode) {
-                    case 403:
-                        msg = "Your are not authorized to view this information.";
-                        if (response.Data.anonymous) msg += " Please login before accessing this information."
-                    break;
-                    case 461:
-                        msg = "Your are not authorized to access this service. Please authorize yourself for using " + response.Data.Connector + " via next url: <br>";
-                        msg += response.Data.AuthorizeUrl;
-                    break;
-                    default:
-                        msg = "Unknown server response."
-                }
+      this.$.msg.html = "";
 
-                msg += "<br><small>(at-core-activity ErrorCode: " + response.ErrorCode + ", " + response.Data.ErrorText + ", url: " + this.url + ")</small>";
-                this.$.msg.type = "warning";
-                this.$.msg.html = msg;
-            }
+      this.completes = new Promise(function (resolve, reject) {
+        this.resolveCompletes = resolve;
+        this.rejectCompletes = reject;
+      }.bind(this));
+
+      var requestOptions = this.toRequestOptions();
+
+      this.completes.then(
+        this.handleResponse.bind(this),
+        this.handleError.bind(this)
+      ).then(
+        this.discardRequest.bind(this)
+      );
+
+      this.$.spinner.display = "block";
+
+      this.send(requestOptions);
+    },
+
+    handleResponse: function (response) {
+      this.lastResponse = response;
+      if (this.handleResponseErrors && !!response.ErrorCode) {
+        // process activity response
+        if (response.ErrorCode == 0) {
+          // activity returned valid response
+          this.response = response.Data;
         } else {
-            this.response = !!response.Data ? response.Data : response;
+          // activity failed
+          var msg = "";
+          switch (response.ErrorCode) {
+          case 403:
+            msg = "Your are not authorized to view this information.";
+            if (response.Data.anonymous) msg += " Please login before accessing this information."
+            break;
+          case 461:
+            msg = "Your are not authorized to access this service. Please authorize yourself for using " + response.Data.Connector + " via next url: <br>";
+            msg += response.Data.AuthorizeUrl;
+            break;
+          default:
+            msg = "Unknown server response."
+          }
+
+          msg += "<br><small>(at-core-activity ErrorCode: " + response.ErrorCode + ", " + response.Data.ErrorText + ", url: " + this.url + ")</small>";
+          this.$.msg.type = "warning";
+          this.$.msg.html = msg;
         }
-        
-        this.fire('core-response', { response: response, xhr: this.xhr });
+      } else {
+        this.response = !!response.Data ? response.Data : response;
+      }
+
+      this.fire('core-response', {
+        response: response,
+        xhr: this.xhr
+      });
     },
-    
+
     handleError: function (error) {
-        if (this.verbose) {
-            console.error(error);
-        }
-        this.lastError = error;
-        
-        this.$.msg.html = "Request failed.<br>(at-core-activity url: " + this.url + ", status:" + this.xhr.status + ")";
-        
-        var responseText = (this.xhr.response !== null)? this.xhr.responseText : "null response";
-        
-        var response = this.xhr.status + ': ' + responseText;
-        
-        this.fire('core-error', { response: response, xhr: this.xhr });
+      if (this.verbose) {
+        console.error(error);
+      }
+      this.lastError = error;
+
+      this.$.msg.html = "Request failed.<br>(at-core-activity url: " + this.url + ", status:" + this.xhr.status + ")";
+
+      var responseText = (this.xhr.response !== null) ? this.xhr.responseText : "null response";
+
+      var response = this.xhr.status + ': ' + responseText;
+
+      this.fire('core-error', {
+        response: response,
+        xhr: this.xhr
+      });
     },
-    
+
     discardRequest: function () {
-        this.$.spinner.display = "none";
-        
-        this.fire('core-complete', { response: this.xhr.status, xhr: this.xhr });
+      this.$.spinner.display = "none";
+
+      this.fire('core-complete', {
+        response: this.xhr.status,
+        xhr: this.xhr
+      });
     },
-        
+
     /**
      * Sends an HTTP request to the server and returns the XHR object.
      *
@@ -479,117 +487,113 @@ Polymer({
      *    @param {Object} options.body The content for the request body for POST method.
      *    @param {Object} options.headers HTTP request headers.
      *    @param {String} options.handleAs The response type. Default is 'text'.
-     *    @param {boolean} options.withCredentials Whether or not to send credentials on the request. Default is false.
+     *    @param {boolean} options.noCredentials Whether or not to send credentials on the request. Default is false.
      * @return Promise
      */
     send: function (options) {
-        var xhr = this.xhr;
-        
-        if (xhr.readyState > 0) {
-            return;
+      var xhr = this.xhr;
+
+//      if (xhr.readyState > 0) { // return; // }
+
+      xhr.addEventListener('readystatechange', function () {
+        if (xhr.readyState === 4 && !this.aborted) {
+          if (this.isSuccess(xhr)) {
+            this.response = this.parseResponse();
+            this.resolveCompletes(this.response);
+          } else {
+            this.rejectCompletes(new Error(''));
+          }
         }
+      }.bind(this));
 
-        xhr.addEventListener('readystatechange', function () {
-            if (xhr.readyState === 4 && !this.aborted) {
-                if(this.isSuccess(xhr)){
-                    this.response = this.parseResponse();
-                    this.resolveCompletes(this.response);
-                }
-                else{
-                    this.rejectCompletes(new Error(''));
-                }
-            }
-        }.bind(this));
+      xhr.addEventListener('progress', function (progress) {
+        this.progress = {
+          lengthComputable: progress.lengthComputable,
+          loaded: progress.loaded,
+          total: progress.total
+        };
+      }.bind(this))
 
-        xhr.addEventListener('progress', function (progress) {
-            this.progress = {
-                lengthComputable: progress.lengthComputable,
-                loaded: progress.loaded,
-                total: progress.total
-            };
-        }.bind(this))
+      xhr.addEventListener('error', function (error) {
+        this.rejectCompletes(error)
+      }.bind(this));
 
-        xhr.addEventListener('error', function (error) {
-            this.rejectCompletes(error)
-        }.bind(this));
+      xhr.addEventListener('abort', function () {
+        this.rejectCompletes(new Error('Request aborted.'));
+      }.bind(this));
 
-        xhr.addEventListener('abort', function () {
-            this.rejectCompletes(new Error('Request aborted.'));
-        }.bind(this));
+      xhr.open(
+        options.method || 'GET',
+        options.url,
+        options.async !== false
+      );
 
-        xhr.open(
-            options.method || 'GET',
-            options.url,
-            options.async !== false
-        );
+      if (options.headers) {
+        Object.keys(options.headers).forEach(function (requestHeader) {
+          xhr.setRequestHeader(
+            requestHeader,
+            options.headers[requestHeader]
+          );
+        }, this);
+      }
 
-        if (options.headers) {
-            Object.keys(options.headers).forEach(function (requestHeader) {
-                xhr.setRequestHeader(
-                    requestHeader,
-                    options.headers[requestHeader]
-                );
-            }, this);
-        }
+      xhr.responseType = options.handleAs;
+      xhr.withCredentials = options.withCredentials;
 
-        xhr.responseType = options.handleAs;
-        xhr.withCredentials = options.withCredentials;
-        
-        xhr.send(options.body);
+      xhr.send(options.body);
 
-        this.lastRequest = xhr;
-        
-        return this.completes;
+      this.lastRequest = xhr;
+
+      return this.completes;
     },
 
     parseResponse: function () {
-        var xhr = this.xhr;
-        try {
-            switch (xhr.responseType) {
-                case 'json':
-                    // If xhr.response is undefined, responseType `json` may
-                    // not be supported.
-                    if (xhr.response === undefined) {
-                        // If accessing `xhr.responseText` throws, responseType `json`
-                        // is supported and the result is rightly `undefined`.
-                        try {
-                            xhr.responseText;
-                        } catch (e) {
-                            return xhr.response
-                        }
+      var xhr = this.xhr;
+      try {
+        switch (xhr.responseType) {
+        case 'json':
+          // If xhr.response is undefined, responseType `json` may
+          // not be supported.
+          if (xhr.response === undefined) {
+            // If accessing `xhr.responseText` throws, responseType `json`
+            // is supported and the result is rightly `undefined`.
+            try {
+              xhr.responseText;
+            } catch (e) {
+              return xhr.response
+            }
 
-                        // Otherwise, attempt to parse `xhr.responseText` as JSON.
-                        try {
-                            return JSON.parse(xhr.responseText);
-                        } catch (x) {
-                            this.$.msg.html = "Exception trying to parse response as JSON.<br>(at-core-activity url: " + this.url + ")";
-                            console.warn('at-core-activity caught an exception trying to parse response as JSON:');
-                            console.warn('url:', this.url);
-                            console.warn(x);
-                            this.rejectCompletes(new Error(xhr.responseText));
-                        }
-                    }
+            // Otherwise, attempt to parse `xhr.responseText` as JSON.
+            try {
+              return JSON.parse(xhr.responseText);
+            } catch (x) {
+              this.$.msg.html = "Exception trying to parse response as JSON.<br>(at-core-activity url: " + this.url + ")";
+              console.warn('at-core-activity caught an exception trying to parse response as JSON:');
+              console.warn('url:', this.url);
+              console.warn(x);
+              this.rejectCompletes(new Error(xhr.responseText));
+            }
+          }
 
-                    return xhr.response;
-                case 'xml':
-                    return xhr.responseXML;
-                case 'blob':
-                case 'document':
-                case 'arraybuffer':
-                    return xhr.response;
-                case 'text':
-                default:
-                    return xhr.responseText;
-                }
-        } catch (e) {
-            this.rejectCompletes(new Error('Could not parse response. ' + e.message));
+          return xhr.response;
+        case 'xml':
+          return xhr.responseXML;
+        case 'blob':
+        case 'document':
+        case 'arraybuffer':
+          return xhr.response;
+        case 'text':
+        default:
+          return xhr.responseText;
         }
+      } catch (e) {
+        this.rejectCompletes(new Error('Could not parse response. ' + e.message));
+      }
     },
 
     abort: function () {
-        this.aborted = true;
-        this.xhr.abort();
+      this.aborted = true;
+      this.xhr.abort();
     }
-});
-
+  });
 </script>
