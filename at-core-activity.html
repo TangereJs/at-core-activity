@@ -436,7 +436,8 @@ element.
      * @method generateRequest
      */
     generateRequest: function() {
-      this.$.msg.html = "";
+      
+     this.$.msg.html = "";
         
       var request = document.createElement('core-request');
       var requestOptions = this.toRequestOptions();
@@ -451,7 +452,13 @@ element.
         this._boundDiscardRequest
       );
 
-      request.send(requestOptions);
+        try{
+            request.send(requestOptions);
+        }catch (e){
+            this._setLastRequest(request);
+            return this.handleError(e);
+        }
+      
       this._setLastRequest(request);
 
       this.fire('request', {
@@ -509,6 +516,19 @@ element.
       this._setLastError(error);
         
       this.$.msg.html = "Request failed.<br>(at-core-activity url: " + this.url + ", status:" + this.lastRequest.xhr.status + ")";
+      
+      //Check if browser IE and url hostname doesn't contain '.'
+      //If conditions met, issue with xhr.open occurs
+      var ua = window.navigator.userAgent;
+      if (ua.indexOf("MSIE ") > -1 || !!ua.match(/Trident\/7\./)){
+        var navigation = document.createElement('a');
+         navigation.href = this.url;
+         if(navigation.hostname.indexOf('.') < 0)
+         {
+            this.$.msg.html += "<br>Request hostname is not in IE security zone.";
+         }
+      }
+        
       var responseText = (this.lastRequest.xhr.response !== null) ? this.lastRequest.xhr.responseText : "null response";
       var response = this.lastRequest.xhr.status + ': ' + responseText;
         
