@@ -177,15 +177,6 @@ element.
         type: Boolean,
         value: false
       },
-        
-      /**
-       * If true, show a warning when the server returns a response with a status code.
-       *
-       */
-      handleResponseErrors: {
-        type: Boolean,
-        value: false
-      },
 
       /**
        * Specifies what data to store in the `response` property, and
@@ -348,7 +339,7 @@ element.
     },
 
     observers: {
-      'url method headers contentType body sync handleResponseErrors handleAs withCredentials noCredentials':
+      'url method headers contentType body sync handleAs withCredentials noCredentials':
         'requestOptionsChanged'
     },
 
@@ -474,7 +465,7 @@ element.
     handleResponse: function(response) {
       this._setLastResponse(response);
         
-    if (this.handleResponseErrors && !!response.ErrorCode) { 
+    if (!!response.ErrorCode) { 
         // process activity response
         if (response.ErrorCode == 0) {
           // activity returned valid response
