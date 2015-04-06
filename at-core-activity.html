@@ -79,7 +79,7 @@ element.
         type: String,
         value: '',
         observer: 'urlChanged'
-          
+
       },
 
       /**
@@ -92,7 +92,7 @@ element.
        */
       params: {
         type: Object,
-        value: function() {
+        value: function () {
           return {};
         }
       },
@@ -128,7 +128,7 @@ element.
        */
       headers: {
         type: Object,
-        value: function() {
+        value: function () {
           return {};
         }
       },
@@ -216,7 +216,7 @@ element.
         type: Boolean,
         value: false
       },
-        
+
       /**
        * Set the withCredentials flag on the request by default to true.
        *
@@ -279,7 +279,7 @@ element.
         type: Object,
         notify: true,
         readOnly: true,
-        value: function() {
+        value: function () {
           this._setLastRequest(null);
         }
       },
@@ -298,7 +298,7 @@ element.
         type: Object,
         notify: true,
         readOnly: true,
-        value: function() {
+        value: function () {
           this._setLastResponse(null);
         }
       },
@@ -315,7 +315,7 @@ element.
         type: Object,
         notify: true,
         readOnly: true,
-        value: function() {
+        value: function () {
           this._setLastError(null);
         }
       },
@@ -332,7 +332,7 @@ element.
         type: Array,
         notify: true,
         readOnly: true,
-        value: function() {
+        value: function () {
           this._setActiveRequests([]);
         }
       }
@@ -343,7 +343,7 @@ element.
         'requestOptionsChanged'
     },
 
-    configure: function() {
+    configure: function () {
       return {
         _boundHandleResponse: this.handleResponse.bind(this),
         _boundHandleError: this.handleError.bind(this),
@@ -351,7 +351,7 @@ element.
       };
     },
 
-    get queryString () {
+    get queryString() {
       var queryParts = [];
       var param;
       var value;
@@ -390,7 +390,7 @@ element.
       return headers;
     },
 
-    toRequestOptions: function() {
+    toRequestOptions: function () {
       return {
         url: this.requestUrl,
         method: this.method,
@@ -403,19 +403,19 @@ element.
       };
     },
 
-    urlChanged: function() {
+    urlChanged: function () {
       if (!this.handleAs) {
         var ext = String(this.url).split('.').pop();
         switch (ext) {
-        case 'json':
-          this.handleAs = 'json';
-          break;
+          case 'json':
+            this.handleAs = 'json';
+            break;
         }
       }
       this.requestOptionsChanged();
     },
-      
-    requestOptionsChanged: function() {
+
+    requestOptionsChanged: function () {
       if (this.auto) {
         this.generateRequest();
       }
@@ -426,10 +426,10 @@ element.
      *
      * @method generateRequest
      */
-    generateRequest: function() {
-      
-     this.$.msg.html = "";
-        
+    generateRequest: function () {
+
+      this.$.msg.html = "";
+
       var request = document.createElement('core-request');
       var requestOptions = this.toRequestOptions();
 
@@ -443,13 +443,13 @@ element.
         this._boundDiscardRequest
       );
 
-        try{
-            request.send(requestOptions);
-        }catch (e){
-            this._setLastRequest(request);
-            return this.handleError(e);
-        }
-      
+      try {
+        request.send(requestOptions);
+      } catch (e) {
+        this._setLastRequest(request);
+        return this.handleError(e);
+      }
+
       this._setLastRequest(request);
 
       this.fire('request', {
@@ -458,77 +458,77 @@ element.
       });
 
       this.$.spinner.display = "block";
-        
+
       return request;
     },
 
-    handleResponse: function(response) {
-      this._setLastResponse(response);
-        
-    if (!!response.ErrorCode) { 
+    handleResponse: function (response) {
+      //this._setLastResponse(response);
+
+      if (!!response.ErrorCode) {
         // process activity response
         if (response.ErrorCode == 0) {
           // activity returned valid response
-          this.response = response.Data;
+          this._setLastResponse(response.Data);
         } else {
           // activity failed
           var msg = "";
           switch (response.ErrorCode) {
-          case 401:
-            msg = "Your are not authorized to view this information.";
-            if (response.Data.anonymous) msg += " Please login before accessing this information."
-            break;
-          case 403:
-            msg = "Your are forbidden to access this content.";
-            break;
-          case 461:
-            msg = "Your are not authorized to access this service. Please authorize yourself for using " + response.Data.Connector + " via next url: <br>";
-            msg += response.Data.AuthorizeUrl;
-            break;
-          default:
-            msg = "Unknown server response."
+            case 401:
+              msg = "Your are not authorized to view this information.";
+              if (response.Data.anonymous) msg += " Please login before accessing this information."
+              break;
+            case 403:
+              msg = "Your are forbidden to access this content.";
+              break;
+            case 461:
+              msg = "Your are not authorized to access this service. Please authorize yourself for using " + response.Data.Connector + " via next url: <br>";
+              msg += response.Data.AuthorizeUrl;
+              break;
+            default:
+              msg = "Unknown server response."
           }
           msg += "<br><small>(at-core-activity ErrorCode: " + response.ErrorCode + ", " + response.Data.ErrorText + ", url: " + this.url + ")</small>";
           this.$.msg.type = "warning";
           this.$.msg.html = msg;
         }
       } else {
-        this.response = !!response.Data ? response.Data : response;
+        //this.response = !!response.Data ? response.Data : response;        
+        this._setLastResponse(!!response.Data ? response.Data : response);
       }
-        
+
       this.fire('response', response);
     },
 
-    handleError: function(error) {
+    handleError: function (error) {
       if (this.verbose) {
         console.error(error);
       }
 
       this._setLastError(error);
-        
+
       this.$.msg.html = "Request failed.<br>(at-core-activity url: " + this.url + ", status:" + this.lastRequest.xhr.status + ")";
-      
+
       //Check if browser IE and url hostname doesn't contain '.'
       //If conditions met, issue with xhr.open occurs
       var ua = window.navigator.userAgent;
-      if (ua.indexOf("MSIE ") > -1 || !!ua.match(/Trident\/7\./)){
+      if (ua.indexOf("MSIE ") > -1 || !!ua.match(/Trident\/7\./)) {
         var navigation = document.createElement('a');
-         navigation.href = this.url;
-         if(navigation.hostname.indexOf('.') < 0)
-         {
-            this.$.msg.html += "<br>Request hostname is not in IE security zone.";
-         }
+        navigation.href = this.url;
+        if (navigation.hostname.indexOf('.') < 0) {
+          this.$.msg.html += "<br>Request hostname is not in IE security zone.";
+        }
       }
-        
+
       var responseText = (this.lastRequest.xhr.response !== null) ? this.lastRequest.xhr.responseText : "null response";
       var response = this.lastRequest.xhr.status + ': ' + responseText;
-        
+
       this.fire('error', error);
     },
 
-    discardRequest: function(request) {
+    discardRequest: function (request) {
       this.$.spinner.display = "none";
-        
+
       var requestIndex = this.activeRequests.indexOf(request);
 
       if (requestIndex > 0) {
