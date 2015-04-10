@@ -1,5 +1,5 @@
 <!--
-Copyright (c) 2014, adenin TECHNOLOGIES
+Copyright (c) 2015, adenin TECHNOLOGIES
 Copyright (c) 2014 The Polymer Project Authors. All rights reserved.
 This code may only be used under the BSD style license found at http://polymer.github.io/LICENSE.txt
 The complete set of authors may be found at http://polymer.github.io/AUTHORS.txt
@@ -77,9 +77,7 @@ element.
        */
       url: {
         type: String,
-        value: '',
-        observer: 'urlChanged'
-
+        value: ''
       },
 
       /**
@@ -92,7 +90,7 @@ element.
        */
       params: {
         type: Object,
-        value: function () {
+        value: function() {
           return {};
         }
       },
@@ -128,7 +126,7 @@ element.
        */
       headers: {
         type: Object,
-        value: function () {
+        value: function() {
           return {};
         }
       },
@@ -278,10 +276,7 @@ element.
       lastRequest: {
         type: Object,
         notify: true,
-        readOnly: true,
-        value: function () {
-          this._setLastRequest(null);
-        }
+        readOnly: true
       },
 
       /**
@@ -297,10 +292,7 @@ element.
       lastResponse: {
         type: Object,
         notify: true,
-        readOnly: true,
-        value: function () {
-          this._setLastResponse(null);
-        }
+        readOnly: true
       },
 
       /**
@@ -314,10 +306,7 @@ element.
       lastError: {
         type: Object,
         notify: true,
-        readOnly: true,
-        value: function () {
-          this._setLastError(null);
-        }
+        readOnly: true
       },
 
       /**
@@ -332,18 +321,18 @@ element.
         type: Array,
         notify: true,
         readOnly: true,
-        value: function () {
+        value: function() {
           this._setActiveRequests([]);
         }
       }
     },
 
     observers: {
-      'url method headers contentType body sync handleAs withCredentials noCredentials':
+      'url method headers contentType body sync auto handleAs withCredentials noCredentials':
         'requestOptionsChanged'
     },
 
-    configure: function () {
+    configure: function () {      
       return {
         _boundHandleResponse: this.handleResponse.bind(this),
         _boundHandleError: this.handleError.bind(this),
@@ -351,7 +340,7 @@ element.
       };
     },
 
-    get queryString() {
+    get queryString () {
       var queryParts = [];
       var param;
       var value;
@@ -403,19 +392,7 @@ element.
       };
     },
 
-    urlChanged: function () {
-      if (!this.handleAs) {
-        var ext = String(this.url).split('.').pop();
-        switch (ext) {
-          case 'json':
-            this.handleAs = 'json';
-            break;
-        }
-      }
-      this.requestOptionsChanged();
-    },
-
-    requestOptionsChanged: function () {
+    requestOptionsChanged: function() {
       if (this.auto) {
         this.generateRequest();
       }
@@ -427,6 +404,12 @@ element.
      * @method generateRequest
      */
     generateRequest: function () {
+
+      if (!this._boundHandleResponse) {
+        this._boundHandleResponse = this.handleResponse.bind(this);
+        this._boundHandleError = this.handleError.bind(this);
+        this._boundDiscardRequest = this.discardRequest.bind(this);
+      }
 
       this.$.msg.html = "";
 
@@ -464,7 +447,7 @@ element.
 
     handleResponse: function (response) {
       //this._setLastResponse(response);
-
+      
       if (!!response.ErrorCode) {
         // process activity response
         if (response.ErrorCode == 0) {
