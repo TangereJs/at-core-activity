@@ -48,7 +48,6 @@ element.
 <script>
   Polymer({
     is: 'at-core-activity',
-    _scopeCssViaAttr: true,
 
     /**
      * Fired when a request is sent.
@@ -410,6 +409,11 @@ element.
         this._boundHandleResponse = this.handleResponse.bind(this);
         this._boundHandleError = this.handleError.bind(this);
         this._boundDiscardRequest = this.discardRequest.bind(this);
+      }
+
+      // ensure that 'body' is not an object
+      if (this.body && typeof this.body == "object") {
+        this.body = JSON.stringify(this.body);
       }
 
       this.$.msg.html = "";
