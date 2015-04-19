@@ -32,6 +32,7 @@ element.
 -->
 <link rel="import" href="../at-core-spinner/at-core-spinner.html">
 <link rel="import" href="../at-carbon-message/at-carbon-message.html">
+<link rel="import" href="../at-core-signals/at-core-signals.html">
 <link rel="import" href="../core-ajax/core-request.html">
 
 <dom-module id="at-core-activity">
@@ -223,6 +224,18 @@ element.
        * @default false
        */
       noCredentials: {
+        type: Boolean,
+        value: false
+      },
+
+      /**
+      * Show an embeded loading indicator 
+      *
+      * @attribute indicator
+      * @type boolean
+      * @default false
+      */
+      indicator: {
         type: Boolean,
         value: false
       },
@@ -444,8 +457,8 @@ element.
         options: requestOptions
       });
 
-      this.$.spinner.display = "block";
-
+      if(this.indicator) this.$.spinner.display = "block";
+      Polymer.signal("busy-start");
       return request;
     },
 
@@ -514,7 +527,9 @@ element.
     },
 
     discardRequest: function (request) {
-      this.$.spinner.display = "none";
+
+      if (this.indicator) this.$.spinner.display = "none";
+      Polymer.signal("busy-end");
 
       var requestIndex = this.activeRequests.indexOf(request);
 
