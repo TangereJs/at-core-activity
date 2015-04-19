@@ -327,10 +327,9 @@ element.
       }
     },
 
-    observers: {
-      'url method headers contentType body sync auto handleAs withCredentials noCredentials':
-        'requestOptionsChanged'
-    },
+    observers: [
+      'requestOptionsChanged(url, method, headers, contentType, body, sync, auto, handleAs, withCredentials, noCredentials)'
+    ],
 
     configure: function () {      
       return {
