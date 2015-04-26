@@ -31,6 +31,7 @@ element.
 @homepage github.io
 -->
 <link rel="import" href="../at-core-spinner/at-core-spinner.html">
+<link rel="import" href="../at-carbon-icon/at-carbon-icon.html">
 <link rel="import" href="../at-carbon-message/at-carbon-message.html">
 <link rel="import" href="../at-core-signals/at-core-signals.html">
 <link rel="import" href="../core-ajax/core-request.html">
@@ -49,7 +50,7 @@ element.
 <script>
   Polymer({
     is: 'at-core-activity',
-
+    _scopeCssViaAttr: true,
     /**
      * Fired when a request is sent.
      *
@@ -91,7 +92,7 @@ element.
        */
       params: {
         type: Object,
-        value: function() {
+        value: function () {
           return {};
         }
       },
@@ -127,7 +128,7 @@ element.
        */
       headers: {
         type: Object,
-        value: function() {
+        value: function () {
           return {};
         }
       },
@@ -229,12 +230,12 @@ element.
       },
 
       /**
-      * Show an embeded loading indicator 
-      *
-      * @attribute indicator
-      * @type boolean
-      * @default false
-      */
+       * Show an embeded loading indicator
+       *
+       * @attribute indicator
+       * @type boolean
+       * @default false
+       */
       indicator: {
         type: Boolean,
         value: false
@@ -334,7 +335,7 @@ element.
         type: Array,
         notify: true,
         readOnly: true,
-        value: function() {
+        value: function () {
           this._setActiveRequests([]);
         }
       }
@@ -344,7 +345,7 @@ element.
       'requestOptionsChanged(url, method, headers, contentType, body, sync, auto, handleAs, withCredentials, noCredentials)'
     ],
 
-    configure: function () {      
+    configure: function () {
       return {
         _boundHandleResponse: this.handleResponse.bind(this),
         _boundHandleError: this.handleError.bind(this),
@@ -352,7 +353,7 @@ element.
       };
     },
 
-    get queryString () {
+    get queryString() {
       var queryParts = [];
       var param;
       var value;
@@ -404,7 +405,7 @@ element.
       };
     },
 
-    requestOptionsChanged: function() {
+    requestOptionsChanged: function () {
       if (this.auto) {
         this.generateRequest();
       }
@@ -457,40 +458,58 @@ element.
         options: requestOptions
       });
 
-      if(this.indicator) this.$.spinner.display = "block";
+      if (this.indicator) this.$.spinner.display = "block";
       Polymer.signal("busy-start");
       return request;
     },
 
     handleResponse: function (response) {
       //this._setLastResponse(response);
-      
+
       if (!!response.ErrorCode) {
+
         // process activity response
         if (response.ErrorCode == 0) {
           // activity returned valid response
           this._setLastResponse(response.Data);
           this.fire('response', response);
+
         } else {
           // activity failed
           var msg = "";
+          var msgType = "warning";
+
           switch (response.ErrorCode) {
-            case 401:
-              msg = "Your are not authorized to view this information.";
-              if (response.Data.anonymous) msg += " Please login before accessing this information."
-              break;
-            case 403:
-              msg = "Your are forbidden to access this content.";
-              break;
-            case 461:
-              msg = "Your are not authorized to access this service. Please authorize yourself for using " + response.Data.Connector + " via next url: <br>";
-              msg += response.Data.AuthorizeUrl;
-              break;
-            default:
-              msg = "Unknown server response."
+
+          case 401:
+            msg = "You are not authorized to view this information.";
+            if (response.Data.anonymous) msg += " Please login before accessing this information."
+            break;
+
+          case 403:
+            msg = "You are not allowed to access this information.";
+            break;
+
+          case 461:
+            // *ma* todo: create button element as soon as innerHTML is available in ShadyDom
+            msgType = "info";
+            var url = response.Data.AuthorizeUrl;
+            url += "?ReturnUrl=" + window.location.href.replace(window.location.origin, "").replace("#", "%23");
+            msg = response.Data.Connector + " Connector not authorized.<br><br>";
+            msg += "<a href='" + url + "' class='authButton' style='color:white'>";
+            msg += "<div class='ui right labeled icon button green'><at-carbon-icon icon='now:key' class='icon'></at-carbon-icon>";
+            msg += "&nbsp;&nbsp;Authorize Connector";
+            msg += "</a></div>";
+            break;
+
+          default:
+            msg = "Unknown server response."
           }
-          msg += "<br><small>(at-core-activity ErrorCode: " + response.ErrorCode + ", " + response.Data.ErrorText + ", url: " + this.url + ")</small>";
-          this.$.msg.type = "warning";
+
+          if (msgType == "warning") {
+            msg += "<br><small>(at-core-activity ErrorCode: " + response.ErrorCode + ", " + response.Data.ErrorText + ", url: " + this.url + ")</small>";
+          }
+          this.$.msg.type = msgType;
           this.$.msg.html = msg;
         }
       } else {
@@ -499,7 +518,7 @@ element.
         this.fire('response', response);
       }
 
-      
+
     },
 
     handleError: function (error) {
