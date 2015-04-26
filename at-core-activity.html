@@ -470,6 +470,7 @@ element.
         if (response.ErrorCode == 0) {
           // activity returned valid response
           this._setLastResponse(response.Data);
+          this.fire('response', response);
         } else {
           // activity failed
           var msg = "";
@@ -495,9 +496,10 @@ element.
       } else {
         //this.response = !!response.Data ? response.Data : response;        
         this._setLastResponse(!!response.Data ? response.Data : response);
+        this.fire('response', response);
       }
 
-      this.fire('response', response);
+      
     },
 
     handleError: function (error) {
