@@ -7,29 +7,7 @@ The complete set of contributors may be found at http://polymer.github.io/CONTRI
 Code distributed by Google as part of the polymer project is also
 subject to an additional IP rights grant found at http://polymer.github.io/PATENTS.txt
 -->
-<!--
-@group Polymer Core Elements
-The `core-ajax` element exposes network request functionality.
-    <core-ajax
-        auto
-        url="http://gdata.youtube.com/feeds/api/videos/"
-        params='{"alt":"json", "q":"chrome"}'
-        handleas="json"
-        on-response="{{handleResponse}}"></core-ajax>
 
-With `auto` set to `true`, the element performs a request whenever
-its `url`, `params` or `body` properties are changed. Automatically generated
-requests will be debounced in the case that multiple attributes are changed
-sequentially.
-
-Note: The `params` attribute must be double quoted JSON.
-You can trigger a request explicitly by calling `generateRequest` on the
-element.
-
-@element core-ajax
-@status preview
-@homepage github.io
--->
 <link rel="import" href="../at-core-spinner/at-core-spinner.html">
 <link rel="import" href="../at-carbon-icon/at-carbon-icon.html">
 <link rel="import" href="../at-carbon-message/at-carbon-message.html">
@@ -424,6 +402,12 @@ element.
         this._boundDiscardRequest = this.discardRequest.bind(this);
       }
 
+      // only one active request per at-core-activity per time
+      // if multiple requests are required then multiple at-core-activity need to be used
+      if (this.activeRequests.length) {       
+        this.activeRequests[0].abort();        
+      }
+      
       // ensure that 'body' is not an object
       if (this.body && typeof this.body == "object") {
         this.body = JSON.stringify(this.body);
@@ -511,6 +495,7 @@ element.
           }
           this.$.msg.type = msgType;
           this.$.msg.html = msg;
+          this.fire('error', msg);
         }
       } else {
         //this.response = !!response.Data ? response.Data : response;        
@@ -522,8 +507,14 @@ element.
     },
 
     handleError: function (error) {
+     
       if (this.verbose) {
         console.error(error);
+      }
+
+      // an aborted requested is not really an error
+      if (error.message.indexOf("abort") > -1) {
+        return;
       }
 
       this._setLastError(error);
