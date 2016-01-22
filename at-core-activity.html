@@ -232,6 +232,20 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
         value: false
       },
 
+        /**
+        * When true and the connector returns a autorization required response only an error message 
+        * "Please authorize access to connector before continuing"
+        * is shown instead of the authorize button
+        *
+        * @attribute disable-authorization
+        * @type boolean
+        * @default false
+        */
+      disableAuthorization: {
+        type: Boolean,
+        value: false
+      },
+        
       /**
        * If true, error messages will automatically be logged to the console.
        *
@@ -475,15 +489,22 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
             break;
 
           case 461:
-            // *ma* todo: create button element as soon as innerHTML is available in ShadyDom
-            msgType = "info";
-            var url = response.Data.AuthorizeUrl;
-            url += "?ReturnUrl=" + window.location.href.replace(window.location.origin, "").replace("#", "%23");
-            msg = response.Data.Connector + " Connector not authorized.<br><br>";
-            msg += "<a href='" + url + "' class='authButton' style='color:white'>";
-            msg += "<div class='ui right labeled icon button green'><at-carbon-icon icon='now:key' class='icon'></at-carbon-icon>";
-            msg += "&nbsp;&nbsp;Authorize Connector";
-            msg += "</a></div>";
+              //True branch added as a part of the task #CMS-28
+              if(this.disableAuthorization){
+                msgType = "error";
+                msg = "Please authorize access to connector before continuing.";
+              }
+              else{
+                // *ma* todo: create button element as soon as innerHTML is available in ShadyDom
+                msgType = "info";
+                var url = response.Data.AuthorizeUrl;
+                url += "?ReturnUrl=" + window.location.href.replace(window.location.origin, "").replace("#", "%23");
+                msg = response.Data.Connector + " Connector not authorized.<br><br>";
+                msg += "<a href='" + url + "' class='authButton' style='color:white'>";
+                msg += "<div class='ui right labeled icon button green'><at-carbon-icon icon='now:key' class='icon'></at-carbon-icon>";
+                msg += "&nbsp;&nbsp;Authorize Connector";
+                msg += "</a></div>";
+              }
             break;
 
           default:
