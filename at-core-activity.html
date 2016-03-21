@@ -377,9 +377,12 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
     get requestHeaders() {
       var headers = Object.create(this.headers || {});
 
-      if (!('content-type' in headers)) {
-        headers['content-type'] = this.contentType;
+      if (!('Content-Type' in headers)) {
+        headers['Content-Type'] = this.contentType;
       }
+
+      //Added per tastk #AT-46 in order to make CSRF protection
+      headers["X-Requested-By"] = Math.random().toString(36).substring(2) + Math.random().toString(36).substring(2);
 
       return headers;
     },
@@ -421,10 +424,13 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
       if (this.activeRequests.length) {       
         this.activeRequests[0].abort();        
       }
-      
-      // ensure that 'body' is not an object
-      if (this.body && typeof this.body == "object") {
-        this.body = JSON.stringify(this.body);
+
+      //Added per tastk #AT-46 to prevent JSON.stringify if sending FormData
+      if (this.contentType != "multipart/form-data") {
+          // ensure that 'body' is not an object
+          if (this.body && typeof this.body == "object") {
+              this.body = JSON.stringify(this.body);
+          }
       }
 
       this.$.msg.html = "";
