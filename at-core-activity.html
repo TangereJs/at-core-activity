@@ -504,7 +504,7 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
                 // *ma* todo: create button element as soon as innerHTML is available in ShadyDom
                 msgType = "info";
                 var url = response.Data.AuthorizeUrl;
-                url += "?ReturnUrl=" + window.location.href.replace(window.location.origin, "").replace("#", "%23");
+                url += "?ReturnUrl=" + encodeURIComponent(window.location.href.replace(window.location.origin, ""));
                 msg = response.Data.Connector + " Connector not authorized.<br><br>";
                 msg += "<a href='" + url + "' class='authButton' style='color:white'>";
                 msg += "<div class='ui right labeled icon button green'><at-carbon-icon icon='now:key' class='icon'></at-carbon-icon>";
