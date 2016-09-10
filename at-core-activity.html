@@ -381,8 +381,8 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
         headers['Content-Type'] = this.contentType;
       }
 
-      //Added per tastk #AT-46 in order to make CSRF protection
-      headers["X-Requested-By"] = Math.random().toString(36).substring(2) + Math.random().toString(36).substring(2);
+      // custom header for CSRF protection
+      headers["X-Requested-By"] = "at-core-activity";
 
       return headers;
     },
