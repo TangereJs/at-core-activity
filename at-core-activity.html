@@ -569,8 +569,7 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
 
       if (this.indicator) this.$.spinner.display = "none";
       Polymer.signal("busy-end");
-      this.fire('discard', request);
-
+ 
       var requestIndex = this.activeRequests.indexOf(request);
 
       if (requestIndex > 0) {
