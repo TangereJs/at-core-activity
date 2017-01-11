@@ -7,7 +7,7 @@ The complete set of contributors may be found at http://polymer.github.io/CONTRI
 Code distributed by Google as part of the polymer project is also
 subject to an additional IP rights grant found at http://polymer.github.io/PATENTS.txt
 -->
-
+<link rel="import" href="../tangere/tangere.html">
 <link rel="import" href="../at-core-spinner/at-core-spinner.html">
 <link rel="import" href="../at-carbon-icon/at-carbon-icon.html">
 <link rel="import" href="../at-carbon-message/at-carbon-message.html">
@@ -233,7 +233,7 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
       },
 
         /**
-        * When true and the connector returns a autorization required response only an error message 
+        * When true and the connector returns a autorization required response only an error message
         * "Please authorize access to connector before continuing"
         * is shown instead of the authorize button
         *
@@ -245,7 +245,7 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
         type: Boolean,
         value: false
       },
-        
+
       /**
        * If true, error messages will automatically be logged to the console.
        *
@@ -328,7 +328,7 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
         notify: true,
         readOnly: true,
         value: function () {
-          this._setActiveRequests([]);
+          return [];
         }
       }
     },
@@ -424,7 +424,7 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
       if (this.activeRequests.length) {
           this.activeRequests[0].abort();
       }
-      
+
       this.lastResponse = undefined;
 
       // prevent JSON.stringify if sending FormData
@@ -527,7 +527,7 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
           this.fire('error', msg);
         }
       } else {
-        //this.response = !!response.Data ? response.Data : response;        
+        //this.response = !!response.Data ? response.Data : response;
         this._setLastResponse(!!response.Data ? response.Data : response);
         this.fire('response', response);
       }
@@ -536,7 +536,7 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
     },
 
     handleError: function (error) {
-     
+
       if (this.verbose) {
         console.error(error);
       }
@@ -571,7 +571,7 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
 
       if (this.indicator) this.$.spinner.display = "none";
       Polymer.signal("busy-end");
- 
+
       var requestIndex = this.activeRequests.indexOf(request);
 
       if (requestIndex > 0) {
