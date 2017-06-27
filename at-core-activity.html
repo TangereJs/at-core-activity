@@ -327,7 +327,7 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
         notify: true,
         readOnly: true,
         value: function () {
-          return [];
+          this._setActiveRequests([]);
         }
       }
     },
@@ -364,13 +364,19 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
     },
 
     get requestUrl() {
+      var rUrl = this.url;
       var queryString = this.queryString;
 
       if (queryString) {
-        return this.url + '?' + queryString;
+        rUrl = this.url + '?' + queryString;
       }
 
-      return this.url;
+      // prefix server relative Url with APIHost if provided
+      if (window.atAPIHost && rUrl.indexOf("//") == -1 && rUrl.indexOf("/") == 0) {
+        rUrl = window.atAPIHost + rUrl;
+      }
+
+      return rUrl;
     },
 
     get requestHeaders() {
