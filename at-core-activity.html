@@ -467,7 +467,7 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
       this.fire('request', {
         xhr: request.xhr,
         options: requestOptions
-      });
+      }, { bubbles: false });
 
       if (this.indicator) this.$.spinner.display = "block";
       Polymer.signal("busy-start");
@@ -483,7 +483,7 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
         if (response.ErrorCode == 0) {
           // activity returned valid response
           this._setLastResponse(response.Data);
-          this.fire('response', response);
+          this.fire('response', response, { bubbles: false });
 
         } else {
           // activity failed
@@ -529,12 +529,12 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
           }
           this.$.msg.type = msgType;
           this.$.msg.html = msg;
-          this.fire('error', msg);
+          this.fire('error', msg, { bubbles: false });
         }
       } else {
         //this.response = !!response.Data ? response.Data : response;
         this._setLastResponse(!!response.Data ? response.Data : response);
-        this.fire('response', response);
+        this.fire('response', response, { bubbles: false });
       }
 
 
@@ -569,7 +569,7 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
       var responseText = (this.lastRequest.xhr.response !== null) ? this.lastRequest.xhr.responseText : "null response";
       var response = this.lastRequest.xhr.status + ': ' + responseText;
 
-      this.fire('error', error);
+      this.fire('error', error, { bubbles: false });
     },
 
     discardRequest: function (request) {
