@@ -527,9 +527,17 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
           if (msgType == "warning") {
             msg += "<br><small>(at-core-activity ErrorCode: " + response.ErrorCode + ", " + response.Data.ErrorText + ", url: " + this.url + ")</small>";
           }
+
+          this.fire('error', msg, { bubbles: false });
+          
+          // force login if not authenticated error is returned e.g. after session timeout
+          if (response.ErrorCode == 401) {
+            Polymer.signal('session-force-login');
+          }
+
           this.$.msg.type = msgType;
           this.$.msg.html = msg;
-          this.fire('error', msg, { bubbles: false });
+          
         }
       } else {
         //this.response = !!response.Data ? response.Data : response;
