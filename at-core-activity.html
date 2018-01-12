@@ -329,6 +329,18 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
         value: function () {
           this._setActiveRequests([]);
         }
+      },
+
+      /**
+       * When set to true and error is received from remote data source, container element will receive both error event and response event. Container should use error event to process the error message and response event to process the response
+       * 
+       * @property disableErrorCodeHandler
+       * @type Boolean
+       * @default false
+       */
+      disableErrorCodeHandler: {
+        type: Boolean,
+        value: false
       }
     },
 
@@ -529,7 +541,7 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
           }
           var sfe = { handled: false, ignoreData: true };
 
-          this.fire('error', { message: msg, handler: sfe } , { bubbles: false });
+          this.fire('error', { message: msg, handler: !this.disableErrorCodeHandler } , { bubbles: false });
           
           // force login if not authenticated error is returned e.g. after session timeout
           
