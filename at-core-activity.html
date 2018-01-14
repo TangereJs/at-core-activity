@@ -539,9 +539,10 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
           if (msgType == "warning") {
             msg += "<br><small>(at-core-activity ErrorCode: " + response.ErrorCode + ", " + response.Data.ErrorText + ", url: " + this.url + ")</small>";
           }
-          var sfe = { handled: false, ignoreData: true };
 
-          this.fire('error', { message: msg, handler: !this.disableErrorCodeHandler } , { bubbles: false });
+          var sfe = { handled: false, ignoreData: !this.disableErrorCodeHandler };
+
+          this.fire('error', { message: msg, handler: sfe } , { bubbles: false });
           
           // force login if not authenticated error is returned e.g. after session timeout
           
@@ -555,8 +556,7 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
             this.$.msg.html = msg;
           }
 
-          // container might request that error response is also forwarded 
-          // *ma* decide if we should have an attribute to configure default for ignoreData
+          // container might request that error response is also forwarded           
           if (!sfe.ignoreData) {
             this._setLastResponse(response.Data);
             this.fire('response', response, { bubbles: false });
