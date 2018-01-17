@@ -489,6 +489,21 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
     handleResponse: function (response) {
       //this._setLastResponse(response);
 
+      // NOTE(ij): When server returns http 4xx or http 5xx response, response parameter in this function is null
+      if (!response) {
+        if (this.disableErrorCodeHandler) {
+          this.fire('response', {
+            request: this.lastRequest
+          }, { bubbles: false });
+
+        } else {
+          this.fire('error', {
+            request: this.lastRequest
+          }, { bubbles: false });
+        }
+        return;
+      }
+
       if (!!response.ErrorCode) {
 
         // process activity response
