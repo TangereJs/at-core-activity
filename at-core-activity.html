@@ -495,7 +495,9 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
         response = {
           ErrorCode: 599,
           Data: {
-            ErrorText: [ xhr.status, xhr.statusText ].join(" ")
+            ErrorText: [ xhr.status, xhr.statusText ].join(" "),
+            HttpCode: xhr.status,
+            HttpStatus: xhr.statusText
           }
         };
       }
