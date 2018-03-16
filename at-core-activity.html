@@ -333,7 +333,7 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
 
       /**
        * When set to true and error is received from remote data source, container element will receive both error event and response event. Container should use error event to process the error message and response event to process the response
-       * 
+       *
        * @property disableErrorCodeHandler
        * @type Boolean
        * @default false
@@ -556,10 +556,10 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
           var sfe = { handled: false, ignoreData: !this.disableErrorCodeHandler };
 
           this.fire('error', { message: msg, handler: sfe } , { bubbles: false });
-          
+
           // force login if not authenticated error is returned e.g. after session timeout
-          
-          if (response.ErrorCode == 401) {            
+
+          if (response.ErrorCode == 401) {
             Polymer.signal('session-force-login', sfe);
           }
 
@@ -569,12 +569,12 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
             this.$.msg.html = msg;
           }
 
-          // container might request that error response is also forwarded           
+          // container might request that error response is also forwarded
           if (!sfe.ignoreData) {
             this._setLastResponse(response.Data);
             this.fire('response', response, { bubbles: false });
           }
-          
+
         }
       } else {
         //this.response = !!response.Data ? response.Data : response;
