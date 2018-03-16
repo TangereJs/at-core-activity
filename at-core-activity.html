@@ -489,8 +489,8 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
     handleResponse: function (response) {
       //this._setLastResponse(response);
 
-      // When server returns http 4xx or http 5xx response, response parameter in this function is null
-      if (!response) {
+      var statusCode = this.lastRequest.xhr.status;
+      if (statusCode > 399 && statusCode < 600 && !response) {
         var xhr = this.lastRequest.xhr;
         response = {
           ErrorCode: 599,
