@@ -327,7 +327,7 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
         notify: true,
         readOnly: true,
         value: function () {
-          this._setActiveRequests([]);
+          return [];
         }
       },
 
@@ -452,7 +452,7 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
           }
       }
 
-      this.$.msg.html = "";
+      if (this.$) this.$.msg.html = "";
 
       var request = document.createElement('core-request');
       var requestOptions = this.toRequestOptions();
