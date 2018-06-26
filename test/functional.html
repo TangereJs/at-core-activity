@@ -1,0 +1,62 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <title>at-core-activity tests</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+  <script src="../../webcomponentsjs/webcomponents-lite.js"></script>
+  <script src="../../web-component-tester/browser.js"></script>
+  <link rel="import" href="../at-core-activity.html">
+  <link rel="import" href="../../iron-test-helpers/iron-test-helpers.html" />
+</head>
+
+<body>
+  <test-fixture id="propertyTests">
+    <template>
+      <at-core-activity></at-core-activity>
+    </template>
+  </test-fixture>
+
+  <script>
+    suite('functional interaction tests', function() {
+
+      function assertPropertyValue(elt, name, value) {
+        assert.deepEqual(elt[name], value);
+      }
+
+      test('pera 123', function() {
+
+
+        // assert initial state
+
+        // if auto is false, setting any other property that would generate the request will not generate the request
+
+        // if auto is true, setting url and params to empty does not generate the request
+
+        // assert that setting params results in correct query params string
+
+        // assert that setting headers object results in correctly computed headers on request
+        // do special check for Content-Type
+
+        // assert different HTTP methods; GET, POST, DELETE, PUT, OPTIONS
+
+        // assert that CSRF header "X-Requested-By" is set
+
+        // assert that body parameter is set correctly
+
+        // if there is an existing request that did not complete, it will be aborted before new request is sent
+
+        // when sending FormData with contentType multipart/form-data do not stringify the formData
+
+        // when request is in progress, at-core-activity fires 'request' event
+
+        // if indicator is true, it will show a spinner
+
+        // when request is in progress, at-core-activity will signal a 'busy-start' 
+
+      });
+
+    });
+  </script>
+</body>
+</html>
