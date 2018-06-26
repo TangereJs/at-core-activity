@@ -268,7 +268,8 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
       loading: {
         type: Boolean,
         notify: true,
-        readOnly: true
+        readOnly: true,
+        value: false
       },
 
       /**
@@ -281,7 +282,10 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
       lastRequest: {
         type: Object,
         notify: true,
-        readOnly: true
+        readOnly: true,
+        value: function() {
+          return null;
+        }
       },
 
       /**
@@ -297,7 +301,10 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
       lastResponse: {
         type: Object,
         notify: true,
-        readOnly: true
+        readOnly: true,
+        value: function() {
+          return null;
+        }
       },
 
       /**
@@ -311,7 +318,10 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
       lastError: {
         type: Object,
         notify: true,
-        readOnly: true
+        readOnly: true,
+        value: function() {
+          return null;
+        }
       },
 
       /**
