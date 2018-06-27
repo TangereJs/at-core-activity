@@ -402,7 +402,17 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
     },
 
     get requestHeaders() {
-      var headers = Object.create(this.headers || {});
+      // NOTE. using Object.create returs empty headers object, even when this.headers has properties
+      // var headers = Object.create(this.headers || {});
+      // Create empty object instead, and manually copy keys from this.headers to local headers object
+      var headers = {};
+      
+      var tmpKeys = Object.keys(this.headers);
+      if (tmpKeys.length > 0) {
+        tmpKeys.forEach(function(key) {
+          headers[key] = this.headers[key];
+        }, this);
+      }
 
       if (!('Content-Type' in headers)) {
         headers['Content-Type'] = this.contentType;
@@ -449,7 +459,7 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
       // only one active request per at-core-activity per time
       // if multiple requests are required then multiple at-core-activity need to be used
       if (this.activeRequests.length) {
-          this.activeRequests[0].abort();
+        this.activeRequests[0].abort();
       }
 
       this.lastResponse = undefined;
@@ -467,6 +477,12 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
       var request = document.createElement('core-request');
       var requestOptions = this.toRequestOptions();
 
+      // if there is an exiting aborted request remove it from active requests because
+      // 1) aborted request is no longer active
+      // 2) at-core-activity handles only one request at the time
+      if (this.activeRequests.length > 0 && this.activeRequests[0].aborted) {
+        this.activeRequests.pop();
+      }
       this.activeRequests.push(request);
 
       request.completes.then(
@@ -497,6 +513,9 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
     },
 
     handleResponse: function (response) {
+      // hide indicator on response
+      if (this.indicator) this.$.spinner.display = "none";
+
       //this._setLastResponse(response);
 
       // when server side http 4xx or 5xx error occurs response is null
@@ -598,6 +617,8 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
     },
 
     handleError: function (error) {
+      // hide indicator on error
+      if (this.indicator) this.$.spinner.display = "none";
 
       if (this.verbose) {
         console.error(error);

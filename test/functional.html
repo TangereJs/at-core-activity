@@ -1,5 +1,6 @@
 <!doctype html>
 <html>
+
 <head>
   <meta charset="UTF-8">
   <title>at-core-activity tests</title>
@@ -7,6 +8,7 @@
   <script src="../../webcomponentsjs/webcomponents-lite.js"></script>
   <script src="../../web-component-tester/browser.js"></script>
   <link rel="import" href="../at-core-activity.html">
+  <link rel="import" href="../../at-core-signals/at-core-signals.html">
   <link rel="import" href="../../iron-test-helpers/iron-test-helpers.html" />
 </head>
 
@@ -17,6 +19,8 @@
     </template>
   </test-fixture>
 
+  <at-core-signals id="coreSignals"></at-core-signals>
+
   <script>
     suite('functional interaction tests', function() {
 
@@ -24,39 +28,572 @@
         assert.deepEqual(elt[name], value);
       }
 
-      test('pera 123', function() {
-
-
-        // assert initial state
+      test('if auto is false, setting any other property that would generate the request will not generate the request', function() {
+        var elt = fixture('propertyTests');
 
         // if auto is false, setting any other property that would generate the request will not generate the request
+        var requestEventCount = 0;
+        function handleRequestEvent() {
+          requestEventCount += 1;
+        }
+        elt.addEventListener('request', handleRequestEvent);
 
-        // if auto is true, setting url and params to empty does not generate the request
+        elt.url = "/test_url";
+        assert.equal(requestEventCount, 0);
 
-        // assert that setting params results in correct query params string
+        elt.method = "POST";
+        assert.equal(requestEventCount, 0);
 
-        // assert that setting headers object results in correctly computed headers on request
-        // do special check for Content-Type
+        elt.headers = {
+          "X-Request-Custom-Header1": "lorem",
+          "X-Request-Custom-Header2": "ipsum"
+        };
+        assert.equal(requestEventCount, 0);
 
-        // assert different HTTP methods; GET, POST, DELETE, PUT, OPTIONS
+        elt.contentType = "multipart/form-data";
+        assert.equal(requestEventCount, 0);
+
+        elt.body = "lorem ipsum";
+        assert.equal(requestEventCount, 0);
+
+        elt.sync = true;
+        assert.equal(requestEventCount, 0);
+
+        elt.handleAs = "text/html";
+        assert.equal(requestEventCount, 0);
+
+        elt.withCredentials = true;
+        assert.equal(requestEventCount, 0);
+
+        elt.noCredentials = true;
+        assert.equal(requestEventCount, 0);
+
+        elt.params = {
+          "param1": "lorem",
+          "param2": "ipsum",
+        };
+        assert.equal(requestEventCount, 0);
+
+        elt.indicator = true;
+        assert.equal(requestEventCount, 0);
+
+        elt.removeEventListener('request', handleRequestEvent);
+      });
+
+      test('if auto is true, setting url and params to empty does not generate the request', function() {
+        var elt = fixture('propertyTests');
+
+        var requestEventCount = 0;
+        function handleRequestEvent() {
+          requestEventCount += 1;
+        }
+        elt.addEventListener('request', handleRequestEvent);
+
+        elt.auto = true;
+
+        elt.url = "";
+        assert.equal(requestEventCount, 0);
+
+        elt.params = {};
+        assert.equal(requestEventCount, 0);
+
+        elt.removeEventListener('request', handleRequestEvent);
+      });
+
+      test('assert that setting params results in correct query params string', function() {
+        var elt = fixture('propertyTests');
+
+        var requestEventCount = 0;
+        function handleRequestEvent() {
+          requestEventCount += 1;
+        }
+        elt.addEventListener('request', handleRequestEvent);
+
+        elt.url = "/test_url";
+        assert.equal(requestEventCount, 0);
+
+        elt.params = {
+          "param1": "lorem",
+          "param2": "ipsum",
+        };
+        assert.equal(requestEventCount, 0);
+
+        var expUrl = "/test_url?param1=lorem&param2=ipsum";
+        assert.equal(elt.requestUrl, expUrl);
+
+        assert.equal(requestEventCount, 0);
+        elt.removeEventListener('request', handleRequestEvent);
+      });
+
+      test('setting headers object results in correctly computed headers for request', function() {
+        var elt = fixture('propertyTests');
+
+        var requestEventCount = 0;
+        function handleRequestEvent() {
+          requestEventCount += 1;
+        }
+        elt.addEventListener('request', handleRequestEvent);
+
+        elt.headers = {
+          "X-Request-Custom-Header1": "lorem",
+          "X-Request-Custom-Header2": "ipsum"
+        };
 
         // assert that CSRF header "X-Requested-By" is set
+        var expHeaders = {
+          "X-Request-Custom-Header1": "lorem",
+          "X-Request-Custom-Header2": "ipsum",
+          "Content-Type": "application/x-www-form-urlencoded",
+          "X-Requested-By": "at-core-activity"
+        };
 
-        // assert that body parameter is set correctly
+        assert.deepEqual(elt.requestHeaders, expHeaders);
+        assert.equal(requestEventCount, 0);
 
-        // if there is an existing request that did not complete, it will be aborted before new request is sent
+        // do special check for Content-Type
+        elt.headers = {
+          "X-Request-Custom-Header1": "lorem",
+          "X-Request-Custom-Header2": "ipsum",
+          "Content-Type": "multipart/form-data",
+        };
 
-        // when sending FormData with contentType multipart/form-data do not stringify the formData
+        // assert that CSRF header "X-Requested-By" is set
+        var expHeaders2 = {
+          "X-Request-Custom-Header1": "lorem",
+          "X-Request-Custom-Header2": "ipsum",
+          "Content-Type": "multipart/form-data",
+          "X-Requested-By": "at-core-activity"
+        };
+        assert.deepEqual(elt.requestHeaders, expHeaders2);
 
-        // when request is in progress, at-core-activity fires 'request' event
+        assert.equal(requestEventCount, 0);
+        elt.removeEventListener('request', handleRequestEvent);
+      });
+    });
 
-        // if indicator is true, it will show a spinner
+    suite('handle HTTP methods GET, POST, DELETE, PUT with sinon fake server', function() {
+      var jsonResponseHeaders;
+      var requestOptions;
+      var request;
+      var server;
 
-        // when request is in progress, at-core-activity will signal a 'busy-start' 
+      var actBodyForTest = {
+        prop1: 'lorem',
+        prop2: 'ipsum'
+      };
+
+      setup(function() {
+        jsonResponseHeaders = {
+          'Content-Type': 'application/json'
+        };
+        server = sinon.fakeServer.create();
+        server.respondWith(
+          'GET',
+          '/responds_to_get_with_json',
+          [
+            200,
+            jsonResponseHeaders,
+            '{"success":true}'
+          ]
+        );
+        server.respondWith(
+          'POST',
+          '/responds_to_post_with_json',
+          [
+            200,
+            jsonResponseHeaders,
+            '{"success":true}'
+          ]
+        );
+        server.respondWith(
+          'PUT',
+          '/responds_to_put_with_json',
+          [
+            200,
+            jsonResponseHeaders,
+            '{"success":true}'
+          ]
+        );
+        server.respondWith(
+          'DELETE',
+          '/responds_to_delete_with_json',
+          [
+            200,
+            jsonResponseHeaders,
+            '{"success":true}'
+          ]
+        );
+        server.respondWith(
+          'POST',
+          '/assert_body_content',
+          function(request) {
+            var expBodyStr = JSON.stringify(actBodyForTest);
+            assert.equal(request.requestBody, expBodyStr);
+            request.respond(200, jsonResponseHeaders, '{"success":true}');
+          }
+        );
+        server.respondWith(
+          'GET',
+          '/assert_aborted_request?param1=lorem',
+          '{"success":true}'
+        );
 
       });
 
+      teardown(function() {
+        server.restore();
+      });
+
+      test('can send GET request', function(done) {
+        var elt = fixture('propertyTests');
+
+        var requestEventCount = 0;
+        function handleRequestEvent() {
+          requestEventCount += 1;
+        }
+        elt.addEventListener('request', handleRequestEvent);
+
+        elt.url = '/responds_to_get_with_json';
+        elt.method = 'GET';
+
+        function handleResponseEvent(event) {
+          elt.removeEventListener('request', handleRequestEvent);
+          elt.removeEventListener('response', handleResponseEvent);
+
+          assert.equal(event.detail.success, true);
+
+          assert.equal(requestEventCount, 1);
+          done();
+        }
+
+        elt.addEventListener('response', handleResponseEvent);
+        elt.generateRequest();
+        server.respond();
+      });
+
+      test('can send POST request', function(done) {
+        var elt = fixture('propertyTests');
+
+        var requestEventCount = 0;
+        function handleRequestEvent() {
+          requestEventCount += 1;
+        }
+        elt.addEventListener('request', handleRequestEvent);
+
+        elt.url = '/responds_to_post_with_json';
+        elt.method = 'POST';
+
+        function handleResponseEvent(event) {
+          elt.removeEventListener('request', handleRequestEvent);
+          elt.removeEventListener('response', handleResponseEvent);
+
+          assert.equal(event.detail.success, true);
+
+          assert.equal(requestEventCount, 1);
+          done();
+        }
+
+        elt.addEventListener('response', handleResponseEvent);
+        elt.generateRequest();
+        server.respond();
+      });
+
+      test('can send PUT request', function(done) {
+        var elt = fixture('propertyTests');
+
+        var requestEventCount = 0;
+        function handleRequestEvent() {
+          requestEventCount += 1;
+        }
+        elt.addEventListener('request', handleRequestEvent);
+
+        elt.url = '/responds_to_put_with_json';
+        elt.method = 'PUT';
+
+        function handleResponseEvent(event) {
+          elt.removeEventListener('request', handleRequestEvent);
+          elt.removeEventListener('response', handleResponseEvent);
+
+          assert.equal(event.detail.success, true);
+
+          assert.equal(requestEventCount, 1);
+          done();
+        }
+
+        elt.addEventListener('response', handleResponseEvent);
+        elt.generateRequest();
+        server.respond();
+      });
+
+      test('can send DELETE request', function(done) {
+        var elt = fixture('propertyTests');
+
+        var requestEventCount = 0;
+        function handleRequestEvent() {
+          requestEventCount += 1;
+        }
+        elt.addEventListener('request', handleRequestEvent);
+
+        elt.url = '/responds_to_delete_with_json';
+        elt.method = 'DELETE';
+
+        function handleResponseEvent(event) {
+          elt.removeEventListener('request', handleRequestEvent);
+          elt.removeEventListener('response', handleResponseEvent);
+
+          assert.equal(event.detail.success, true);
+
+          assert.equal(requestEventCount, 1);
+          done();
+        }
+
+        elt.addEventListener('response', handleResponseEvent);
+        elt.generateRequest();
+        server.respond();
+      });
+    });
+
+    suite('misc behavior', function() {
+
+      var jsonResponseHeaders;
+      var requestOptions;
+      var request;
+      var server;
+
+      var actBodyForTest = {
+        prop1: 'lorem',
+        prop2: 'ipsum'
+      };
+
+      setup(function() {
+        jsonResponseHeaders = {
+          'Content-Type': 'application/json'
+        };
+        server = sinon.fakeServer.create();
+
+        server.respondWith(
+          'POST',
+          '/assert_body_content',
+          function(request) {
+            var expBodyStr = JSON.stringify(actBodyForTest);
+            assert.equal(request.requestBody, expBodyStr);
+            request.respond(200, jsonResponseHeaders, '{"success":true}');
+          }
+        );
+        server.respondWith(
+          'GET',
+          '/assert_aborted_request?param1=lorem',
+          '{"success":true}'
+        );
+        server.respondWith(
+          'POST',
+          '/assert_form_data',
+          function(request) {
+            assert.isObject(request.requestBody);
+            assert.deepEqual(request.requestBody, actBodyForTest);
+            request.respond(200, jsonResponseHeaders, '{"success":true}');
+          }
+        );
+        server.respondWith(
+          'GET',
+          '/simple_get_request',
+          [
+            200,
+            jsonResponseHeaders,
+            '{"success":true}'
+          ]
+        );
+      });
+
+      teardown(function() {
+        server.restore();
+      });
+
+      test('body parameter is set correctly', function(done) {
+        var elt = fixture('propertyTests');
+
+        var requestEventCount = 0;
+        function handleRequestEvent() {
+          requestEventCount += 1;
+        }
+        elt.addEventListener('request', handleRequestEvent);
+
+        elt.url = '/assert_body_content';
+        elt.method = 'POST';
+        elt.body = actBodyForTest;
+
+        function handleResponseEvent(event) {
+          elt.removeEventListener('request', handleRequestEvent);
+          elt.removeEventListener('response', handleResponseEvent);
+
+          assert.equal(event.detail.success, true);
+
+          assert.equal(requestEventCount, 1);
+          done();
+        }
+
+        elt.addEventListener('response', handleResponseEvent);
+        elt.generateRequest();
+        server.respond();
+      });
+
+      test('if there is an existing request that did not complete, it will be aborted before new request is sent', function(done) {
+        var elt = fixture('propertyTests');
+
+        var requestEventCount = 0;
+        function handleRequestEvent() {
+          requestEventCount += 1;
+        }
+        elt.addEventListener('request', handleRequestEvent);
+
+        elt.url = '/assert_aborted_request';
+        elt.method = 'GET';
+
+        function handleResponseEvent(event) {
+          elt.removeEventListener('request', handleRequestEvent);
+          elt.removeEventListener('response', handleResponseEvent);
+
+          assert.equal(event.detail.success, true);
+
+          // NOTE request event count is 2 because 
+          // first request is sent => 1st event
+          // first request is aborted => no event
+          // second request is sent => 2nd event
+          assert.equal(requestEventCount, 2);
+          done();
+        }
+
+        elt.addEventListener('response', handleResponseEvent);
+        elt.generateRequest();
+
+        assert.equal(elt.activeRequests.length, 1);
+        var requestRef = elt.activeRequests[0];
+        assert.equal(requestRef.aborted, false);
+
+        requestRef.addEventListener('aborted-changed', handleAbortedChanged);
+        function handleAbortedChanged(event) {
+          requestRef.removeEventListener('aborted-changed', handleAbortedChanged);
+
+          assert.equal(requestRef.aborted, true);
+          assert.equal(elt.activeRequests.length, 1);
+        }
+
+        elt.params = {
+          param1: 'lorem'
+        };
+        elt.generateRequest();
+
+        assert.equal(elt.activeRequests.length, 1);
+        assert.equal(elt.activeRequests[0].aborted, false);
+
+        server.respond();
+      });
+
+      test('when sending FormData with contentType multipart/form-data do not stringify the formData', function(done) {
+        var elt = fixture('propertyTests');
+
+        var requestEventCount = 0;
+        function handleRequestEvent() {
+          requestEventCount += 1;
+        }
+        elt.addEventListener('request', handleRequestEvent);
+
+        elt.url = '/assert_form_data';
+        elt.method = 'POST';
+        elt.contentType = "multipart/form-data";
+        elt.body = actBodyForTest;
+
+        function handleResponseEvent(event) {
+          elt.removeEventListener('request', handleRequestEvent);
+          elt.removeEventListener('response', handleResponseEvent);
+
+          assert.equal(event.detail.success, true);
+
+          assert.equal(requestEventCount, 1);
+          done();
+        }
+
+        elt.addEventListener('response', handleResponseEvent);
+        elt.generateRequest();
+
+        server.respond();
+      });
+
+      test('if indicator is true, it will show a spinner', function(done) {
+        var elt = fixture('propertyTests');
+
+        var requestEventCount = 0;
+        function handleRequestEvent() {
+          requestEventCount += 1;
+        }
+        elt.addEventListener('request', handleRequestEvent);
+
+        elt.url = '/simple_get_request';
+        elt.indicator = true;
+
+        function handleResponseEvent(event) {
+          elt.removeEventListener('request', handleRequestEvent);
+          elt.removeEventListener('response', handleResponseEvent);
+
+          assert.equal(event.detail.success, true);
+
+          assert.equal(requestEventCount, 1);
+
+          var spinner = elt.$.spinner;
+          assert.equal(spinner.display, "none");
+          done();
+        }
+
+        elt.addEventListener('response', handleResponseEvent);
+        elt.generateRequest();
+
+        var spinner = elt.$.spinner;
+        assert.equal(spinner.display, "block");
+
+        server.respond();
+      });
+
+      test('when request is in progress, at-core-activity will signal a "busy-start"', function(done) {
+        var elt = fixture('propertyTests');
+        var busyStartSignalCount = 0;
+        
+        var requestEventCount = 0;
+        function handleRequestEvent() {
+          requestEventCount += 1;
+        }
+        elt.addEventListener('request', handleRequestEvent);
+
+        elt.url = '/simple_get_request';
+        elt.indicator = true;
+
+        function handleResponseEvent(event) {
+          elt.removeEventListener('request', handleRequestEvent);
+          elt.removeEventListener('response', handleResponseEvent);
+
+          assert.equal(event.detail.success, true);
+
+          assert.equal(requestEventCount, 1);
+
+          assert.equal(busyStartSignalCount, 1);
+        }
+
+        elt.addEventListener('response', handleResponseEvent);
+
+        var coreSignals = document.getElementById('coreSignals');
+        coreSignals.addEventListener('busy-start', function() {
+          busyStartSignalCount += 1;
+        });
+
+        coreSignals.addEventListener('busy-end', function() {
+          done();
+        });
+
+        elt.generateRequest();
+
+        server.respond();
+      });
     });
   </script>
 </body>
+
 </html>
