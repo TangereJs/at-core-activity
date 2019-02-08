@@ -22,7 +22,7 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
       }
     </style>
     <at-carbon-message id="msg" type="error"></at-carbon-message>
-    <at-core-spinner id="spinner" type="wave" display="none"></at-core-spinner>
+    <at-core-spinner id="spinner" type="[[indicatorType]]" display="none"></at-core-spinner>
   </template>
 </dom-module>
 <script>
@@ -216,6 +216,18 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
       indicator: {
         type: Boolean,
         value: false
+      },
+
+      /**
+       * Choose a type for loading indicator
+       *
+       * @attribute indicatorType
+       * @type String
+       * @default wave
+       */
+      indicatorType: {
+        type: String,
+        value: 'wave'
       },
 
       /**
