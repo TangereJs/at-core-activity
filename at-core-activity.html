@@ -593,7 +593,7 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
           }
 
           if (msgType == "warning") {
-            msg += "<br><small>(at-core-activity ErrorCode: " + response.ErrorCode + ", " + response.Data.ErrorText + ", url: " + this.url + ")</small>";
+            msg += "<br><small>(ErrorCode: " + response.ErrorCode + ", " + response.Data.ErrorText + ", url: " + this.url + ")</small>";
           }
 
           var sfe = { handled: false, ignoreData: !this.disableErrorCodeHandler };
@@ -643,7 +643,7 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
 
       this._setLastError(error);
 
-      this.$.msg.html = "Request failed.<br>(at-core-activity url: " + this.url + ", status:" + this.lastRequest.xhr.status + ")";
+      this.$.msg.html = "Request failed.<br>(url: " + this.url + ", status:" + this.lastRequest.xhr.status + ")";
 
       //Check if browser IE and url hostname doesn't contain '.'
       //If conditions met, issue with xhr.open occurs
