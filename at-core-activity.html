@@ -433,6 +433,11 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
       // custom header for CSRF protection
       headers["X-Requested-By"] = "at-core-activity";
 
+      // client Timezone when available (not IE11)
+      if (Intl.DateTimeFormat().resolvedOptions().timeZone) {
+        headers["X-Timezone"] = Intl.DateTimeFormat().resolvedOptions().timeZone;
+      }
+
       return headers;
     },
 
