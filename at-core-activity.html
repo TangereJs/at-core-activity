@@ -603,7 +603,7 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
 
           var sfe = { handled: false, ignoreData: !this.disableErrorCodeHandler };
 
-          this.fire('error', { message: msg, handler: sfe } , { bubbles: false });
+          this.fire('error', { message: msg, handler: sfe, response: response } , { bubbles: false });
 
           // force login if not authenticated error is returned e.g. after session timeout
 
