@@ -550,23 +550,6 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
         };
       }
 
-      // When there is no response and statusCode -> fire error message "Server did not respond"
-      // if we don't do this explicitly -> an error appears on line 570
-      if(statusCode == 0 && response == null) {
-        var xhr = this.lastRequest.xhr;
-        response = {
-          ErrorCode: 0,
-          Data: {
-            ErrorText: "Server did not respond",
-            HttpCode: 0,
-            HttpStatus: 0
-          }
-        };
-
-        // this will be handled in at-core-activity-queue
-        this.fire('error', { message: "Server did not respond", response: response });
-      }
-
       if (!!response.ErrorCode) {
 
         // process activity response
