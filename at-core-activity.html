@@ -183,7 +183,8 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
       },
 
       /**
-       * Set the withCredentials flag on the request.
+       * Set the withCredentials flag on the request. 
+       * Not supported, credentials send per default. Disable with noCredentials if needed.
        *
        * @attribute withCredentials
        * @type boolean
@@ -441,18 +442,25 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
       return headers;
     },
 
+    
     toRequestOptions: function () {
-      return {
+      
+      var r = {
         url: this.requestUrl,
         method: this.method,
-        headers: this.requestHeaders,
         body: this.body,
         async: !this.sync,
         handleAs: this.handleAs,
         //withCredentials: this.withCredentials
         withCredentials: !this.noCredentials
       };
+
+      // exclude headers when noCredentials to avoid CORS for anonymous file access
+      if(!this.noCredentials) r.headers = this.requestHeaders;
+
+      return r;
     },
+
 
     requestOptionsChanged: function () {
       if (this.auto && !!this.requestUrl) {
