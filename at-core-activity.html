@@ -411,6 +411,13 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
         rUrl = window.atAPIHost + rUrl;
       }
 
+      // resolve symbolic service name to url
+      if (rUrl.indexOf("service://") == 0) {
+        rUrl = rUrl.substring(10);
+        rUrl = Tangere.services[rUrl];
+        if (!rUrl) console.error("unknown service: " + rUrl);
+      }
+
       return rUrl;
     },
 
