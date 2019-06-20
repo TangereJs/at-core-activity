@@ -411,9 +411,39 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
         rUrl = window.atAPIHost + rUrl;
       }
 
+      var serviceName;
+      var appendToServiceUrl;
+      
       // resolve symbolic service name to url
       if (rUrl.indexOf("service://") == 0) {
         rUrl = rUrl.substring(10);
+
+        // get indices for "?" and "/"
+        var indexOfQuestionMark = rUrl.indexOf("?");
+        var indexOfDash = rUrl.indexOf("/");
+
+        if (indexOfQuestionMark != -1) {
+          // parse ?something
+          serviceName = rUrl.substring(0, indexOfQuestionMark);
+          appendToServiceUrl = rUrl.substring(indexOfQuestionMark);
+
+          rUrl = Tangere.services[serviceName];
+          rUrl = rUrl + appendToServiceUrl;
+
+          return rUrl;
+        } 
+
+        if (indexOfDash != -1) {
+          // parse /something
+          serviceName = rUrl.substring(0, indexOfDash);
+          appendToServiceUrl = rUrl.substring(indexOfDash);
+
+          rUrl = Tangere.services[serviceName];
+          rUrl = rUrl + appendToServiceUrl;
+
+          return rUrl;
+        }
+        
         rUrl = Tangere.services[rUrl];
         if (!rUrl) console.error("unknown service: " + rUrl);
       }
