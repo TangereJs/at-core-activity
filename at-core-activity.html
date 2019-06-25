@@ -401,7 +401,7 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
     get requestUrl() {
       var rUrl = this.url;
       var queryString = this.queryString;
-
+      
       if (queryString) {
         rUrl = this.url + '?' + queryString;
       }
@@ -416,52 +416,29 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
       
       // resolve symbolic service name to url
       if (rUrl.indexOf("service://") == 0) {
-        rUrl = rUrl.substring(10);
-
-        // get indices for "?" and "/"
+        rUrl = rUrl.substring(10);   
+   
+        // extract service name from url
         var indexOfQuestionMark = rUrl.indexOf("?");
         var indexOfDash = rUrl.indexOf("/");
+        var endOfName = rUrl.length;
 
-        if (indexOfQuestionMark != -1 && indexOfDash != -1) {
-        // parse service://name/something?parameter
-          lowerIndex = Math.min(indexOfQuestionMark, indexOfDash);
+        if (indexOfQuestionMark != -1) endOfName = indexOfQuestionMark;
+        if (indexOfDash != -1) endOfName = indexOfDash;
 
-          serviceName = rUrl.substring(0, lowerIndex);
-          appendToServiceUrl = rUrl.substring(lowerIndex);
+        serviceName = rUrl.substring(0, endOfName);
+        appendToServiceUrl = rUrl.substring(endOfName);
 
+        if (Tangere.services[serviceName]) {          
           rUrl = Tangere.services[serviceName];
           rUrl = rUrl + appendToServiceUrl;
-
-          return rUrl;
+        } else {
+          console.error("undefined service: " + serviceName);
         }
-
-        if (indexOfQuestionMark != -1) {
-          // parse ?something
-          serviceName = rUrl.substring(0, indexOfQuestionMark);
-          appendToServiceUrl = rUrl.substring(indexOfQuestionMark);
-
-          rUrl = Tangere.services[serviceName];
-          rUrl = rUrl + appendToServiceUrl;
-
-          return rUrl;
-        } 
-
-        if (indexOfDash != -1) {
-          // parse /something
-          serviceName = rUrl.substring(0, indexOfDash);
-          appendToServiceUrl = rUrl.substring(indexOfDash);
-
-          rUrl = Tangere.services[serviceName];
-          rUrl = rUrl + appendToServiceUrl;
-
-          return rUrl;
-        }
-        
-        rUrl = Tangere.services[rUrl];
-        if (!rUrl) console.error("unknown service: " + rUrl);
       }
 
       return rUrl;
+      
     },
 
     get requestHeaders() {
