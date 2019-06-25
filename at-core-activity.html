@@ -422,6 +422,19 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
         var indexOfQuestionMark = rUrl.indexOf("?");
         var indexOfDash = rUrl.indexOf("/");
 
+        if (indexOfQuestionMark != -1 && indexOfDash != -1) {
+        // parse service://name/something?parameter
+          lowerIndex = Math.min(indexOfQuestionMark, indexOfDash);
+
+          serviceName = rUrl.substring(0, lowerIndex);
+          appendToServiceUrl = rUrl.substring(lowerIndex);
+
+          rUrl = Tangere.services[serviceName];
+          rUrl = rUrl + appendToServiceUrl;
+
+          return rUrl;
+        }
+
         if (indexOfQuestionMark != -1) {
           // parse ?something
           serviceName = rUrl.substring(0, indexOfQuestionMark);
