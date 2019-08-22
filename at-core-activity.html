@@ -364,6 +364,11 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
       disableErrorCodeHandler: {
         type: Boolean,
         value: false
+      },
+
+      noToast: {
+        type: Boolean,
+        value: false
       }
     },
 
@@ -645,6 +650,9 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
             msg = "Unknown server response."
           }
 
+          var errorMessage = "";
+          errorMessage = msg + " (" + response.Data.ErrorText + ", " + response.Data.ErrorCode + ")";
+
           if (msgType == "warning") {
             msg += "<br><small>(ErrorCode: " + response.ErrorCode + ", " + response.Data.ErrorText + ", url: " + this.url + ")</small>";
           }
@@ -660,9 +668,13 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
           }
 
           // show error when "nobody" else handles the expired session
-          if (!sfe.handled) {
+          if (!sfe.handled && this.noToast == true) {
             this.$.msg.type = msgType;
             this.$.msg.html = msg;
+          } else {
+            Polymer.signal('sys-error', {
+              message: errorMessage
+            });
           }
 
           // container might request that error response is also forwarded
