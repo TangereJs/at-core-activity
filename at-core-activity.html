@@ -668,13 +668,15 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
           }
 
           // show error when "nobody" else handles the expired session
-          if (!sfe.handled && this.noToast == true) {
-            this.$.msg.type = msgType;
-            this.$.msg.html = msg;
-          } else {
-            Polymer.signal('sys-error', {
-              message: errorMessage
-            });
+          if (!sfe.handled) {
+            if (this.noToast == true) {
+              this.$.msg.type = msgType;
+              this.$.msg.html = msg;
+            } else {
+              Polymer.signal('sys-error', {
+                message: errorMessage
+              });
+            }
           }
 
           // container might request that error response is also forwarded
