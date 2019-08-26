@@ -674,7 +674,8 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
               this.$.msg.html = msg;
             } else {
               Polymer.signal('sys-error', {
-                message: errorMessage
+                message: errorMessage,
+                details: errorMessage + " " + msg
               });
             }
           }
