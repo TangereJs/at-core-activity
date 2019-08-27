@@ -646,15 +646,18 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
               }
             break;
 
-          default:
-            msg = "Unknown server response."
+            default:
+              msg = response.Data.ErrorText ? response.Data.ErrorText : "Unknown server response"
+
+              if (response.Data.ErrorCode) {
+                msg = msg + "(" + response.Data.ErrorCode + ")";
+              }
           }
 
-          var errorMessage = "";
-          errorMessage = msg + " (" + response.Data.ErrorText + ", " + response.Data.ErrorCode + ")";
+          var errorMessage = msg;
 
           if (msgType == "warning") {
-            msg += "<br><small>(ErrorCode: " + response.ErrorCode + ", " + response.Data.ErrorText + ", url: " + this.url + ")</small>";
+            msg += "<br>(ErrorCode: " + response.ErrorCode + ", " + response.Data.ErrorText + ", url: " + this.url + ")";
           }
 
           var sfe = { handled: false, ignoreData: !this.disableErrorCodeHandler };
@@ -675,7 +678,7 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
             } else {
               Polymer.signal('sys-error', {
                 message: errorMessage,
-                details: errorMessage + " " + msg
+                details: msg,
               });
             }
           }
