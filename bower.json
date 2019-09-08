@@ -1,7 +1,7 @@
 {
   "name": "at-core-activity",
   "private": true,
-  "version": "1.0.0.100",
+  "version": "1.0.0.101",
   "dependencies": {
     "tangere": "TangereJs/tangere#master",
     "at-core-spinner": "TangereJs/at-core-spinner#master",
