@@ -660,6 +660,10 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
             msg += "<br>(ErrorCode: " + response.ErrorCode + ", " + response.Data.ErrorText + ", url: " + this.url + ")";
           }
 
+          if (!response.Data.ErrorDetails) {
+            response.Data.ErrorDetails = msg;
+          }
+
           var sfe = { handled: false, ignoreData: !this.disableErrorCodeHandler };
 
           this.fire('error', { message: msg, handler: sfe, response: response } , { bubbles: false });
