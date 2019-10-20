@@ -615,6 +615,7 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
           // activity failed
           var msg = "";
           var msgType = "warning";
+          if (!response.Data.ErrorCode) response.Data.ErrorCode = response.ErrorCode;
 
           switch (response.ErrorCode) {
 
@@ -627,22 +628,13 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
             msg = "You are not allowed to access this information.";
             break;
 
-          case 461:
-              //True branch added as a part of the task #CMS-28
-              if(this.disableAuthorization){
+            case 461:              
+              if (this.disableAuthorization) {   
                 msgType = "error";
                 msg = "Please authorize access to connector before continuing.";
               }
-              else{
-                // *ma* todo: create button element as soon as innerHTML is available in ShadyDom
-                msgType = "info";
-                var url = response.Data.AuthorizeUrl;
-                url += "?ReturnUrl=" + encodeURIComponent(window.location.href.replace(window.location.origin, ""));
-                msg = response.Data.Connector + " Connector not authorized.<br><br>";
-                msg += "<a href='" + url + "' class='authButton' style='color:white'>";
-                msg += "<div class='ui right labeled icon button green'><at-carbon-icon icon='now:key' class='icon'></at-carbon-icon>";
-                msg += "&nbsp;&nbsp;Authorize Connector";
-                msg += "</a></div>";
+              else {               
+                msgType = "error";
               }
             break;
 
