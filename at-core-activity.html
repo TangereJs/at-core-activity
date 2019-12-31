@@ -13,7 +13,6 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
 <link rel="import" href="../at-carbon-message/at-carbon-message.html">
 <link rel="import" href="../at-core-signals/at-core-signals.html">
 <link rel="import" href="../core-ajax/core-request.html">
-
 <dom-module id="at-core-activity">
   <template>
     <style>
@@ -183,7 +182,7 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
       },
 
       /**
-       * Set the withCredentials flag on the request. 
+       * Set the withCredentials flag on the request.
        * Not supported, credentials send per default. Disable with noCredentials if needed.
        *
        * @attribute withCredentials
@@ -244,15 +243,15 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
         value: false
       },
 
-        /**
-        * When true and the connector returns a autorization required response only an error message
-        * "Please authorize access to connector before continuing"
-        * is shown instead of the authorize button
-        *
-        * @attribute disable-authorization
-        * @type boolean
-        * @default false
-        */
+      /**
+      * When true and the connector returns a autorization required response only an error message
+      * "Please authorize access to connector before continuing"
+      * is shown instead of the authorize button
+      *
+      * @attribute disable-authorization
+      * @type boolean
+      * @default false
+      */
       disableAuthorization: {
         type: Boolean,
         value: false
@@ -296,7 +295,7 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
         type: Object,
         notify: true,
         readOnly: true,
-        value: function() {
+        value: function () {
           return null;
         }
       },
@@ -315,7 +314,7 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
         type: Object,
         notify: true,
         readOnly: true,
-        value: function() {
+        value: function () {
           return null;
         }
       },
@@ -332,7 +331,7 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
         type: Object,
         notify: true,
         readOnly: true,
-        value: function() {
+        value: function () {
           return null;
         }
       },
@@ -405,11 +404,6 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
 
     get requestUrl() {
       var rUrl = this.url;
-      var queryString = this.queryString;
-      
-      if (queryString) {
-        rUrl = this.url + '?' + queryString;
-      }
 
       // prefix server relative Url with APIHost if provided
       if (window.atAPIHost && rUrl.indexOf("//") == -1 && rUrl.indexOf("/") == 0) {
@@ -418,11 +412,11 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
 
       var serviceName;
       var appendToServiceUrl;
-      
+
       // resolve symbolic service name to url
       if (rUrl.indexOf("service://") == 0) {
-        rUrl = rUrl.substring(10);   
-   
+        rUrl = rUrl.substring(10);
+
         // extract service name from url
         var indexOfQuestionMark = rUrl.indexOf("?");
         var indexOfDash = rUrl.indexOf("/");
@@ -434,7 +428,7 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
         serviceName = rUrl.substring(0, endOfName);
         appendToServiceUrl = rUrl.substring(endOfName);
 
-        if (Tangere.services[serviceName]) {          
+        if (Tangere.services[serviceName]) {
           rUrl = Tangere.services[serviceName];
           rUrl = rUrl + appendToServiceUrl;
         } else {
@@ -442,8 +436,16 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
         }
       }
 
+      var queryString = this.queryString;
+      if (queryString) {
+        if (rUrl.indexOf("?") > 0) {
+          rUrl = rUrl + '&' + queryString;
+        } else {
+          rUrl = rUrl + '?' + queryString;
+        }
+      }
+
       return rUrl;
-      
     },
 
     get requestHeaders() {
@@ -451,10 +453,10 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
       // var headers = Object.create(this.headers || {});
       // Create empty object instead, and manually copy keys from this.headers to local headers object
       var headers = {};
-      
+
       var tmpKeys = Object.keys(this.headers);
       if (tmpKeys.length > 0) {
-        tmpKeys.forEach(function(key) {
+        tmpKeys.forEach(function (key) {
           headers[key] = this.headers[key];
         }, this);
       }
@@ -474,9 +476,9 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
       return headers;
     },
 
-    
+
     toRequestOptions: function () {
-      
+
       var r = {
         url: this.requestUrl,
         method: this.method,
@@ -488,7 +490,7 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
       };
 
       // exclude headers when noCredentials to avoid CORS for anonymous file access
-      if(!this.noCredentials) r.headers = this.requestHeaders;
+      if (!this.noCredentials) r.headers = this.requestHeaders;
 
       return r;
     },
@@ -523,10 +525,10 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
 
       // prevent JSON.stringify if sending FormData
       if (this.contentType != "multipart/form-data") {
-          // ensure that 'body' is not an object
-          if (this.body && typeof this.body == "object") {
-              this.body = JSON.stringify(this.body);
-          }
+        // ensure that 'body' is not an object
+        if (this.body && typeof this.body == "object") {
+          this.body = JSON.stringify(this.body);
+        }
       }
 
       if (this.$) this.$.msg.html = "";
@@ -619,30 +621,30 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
 
           switch (response.ErrorCode) {
 
-          case 401:
-            msg = "You are not authorized to view this information.";
-            if (response.Data.anonymous) msg += " Please login before accessing this information."
-            break;
+            case 401:
+              msg = "You are not authorized to view this information.";
+              if (response.Data.anonymous) msg += " Please login before accessing this information."
+              break;
 
-          case 403:
-            msg = "You are not allowed to access this information.";
-            break;
+            case 403:
+              msg = "You are not allowed to access this information.";
+              break;
 
-            case 461:              
-              if (this.disableAuthorization) {   
+            case 461:
+              if (this.disableAuthorization) {
                 msgType = "error";
                 msg = "Please authorize access to connector before continuing.";
               }
-              else {               
+              else {
                 msgType = "error";
               }
-            break;
+              break;
 
             default:
               msg = response.Data.ErrorText ? response.Data.ErrorText : "Unknown server response"
 
               if (response.Data.ErrorCode) {
-                msg = msg + "(" + response.Data.ErrorCode + ")";
+                msg = msg + " (" + response.Data.ErrorCode + ")";
               }
           }
 
@@ -658,7 +660,7 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
 
           var sfe = { handled: false, ignoreData: !this.disableErrorCodeHandler };
 
-          this.fire('error', { message: msg, handler: sfe, response: response } , { bubbles: false });
+          this.fire('error', { message: msg, handler: sfe, response: response }, { bubbles: false });
 
           // force login if not authenticated error is returned e.g. after session timeout
 
